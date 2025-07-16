@@ -17,3 +17,15 @@ channel = "stable-24_05"
 [deployment]
 run = ["dotnet", "run"]
 deploymentTarget = "cloudrun"
+
+[workflows]
+runButton = "Run ModernBlog"
+
+[[workflows.workflow]]
+name = "Run ModernBlog"
+author = 43493007
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "dotnet run"

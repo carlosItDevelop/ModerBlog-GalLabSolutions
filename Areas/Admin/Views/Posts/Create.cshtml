@@ -1,0 +1,178 @@
+
+@model ModernBlog.Models.Post
+@{
+    ViewData["Title"] = "Criar Post";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-plus-circle me-2"></i>Criar Novo Post</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Conteúdo do Post</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" placeholder="Digite o título do post..." />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Summary" class="form-label">Resumo</label>
+                        <textarea asp-for="Summary" class="form-control" rows="3" 
+                                  placeholder="Escreva um breve resumo do post..."></textarea>
+                        <span asp-validation-for="Summary" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">Conteúdo</label>
+                        <textarea asp-for="Content" class="form-control" id="content-editor" rows="15"></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Publish Settings -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Configurações de Publicação</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsPublished" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsPublished" class="form-check-label">Publicar imediatamente</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsFeatured" class="form-check-label">Post em destaque</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Categoria</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                            <option value="">Selecione uma categoria</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Tags</h5>
+                </div>
+                <div class="card-body">
+                    <select id="tags-select" name="selectedTags" multiple="multiple" class="form-control">
+                        @foreach (string tag in ViewData["Tags"] as List<string> ?? new List<string>())
+                        {
+                            <option value="@tag">@tag</option>
+                        }
+                    </select>
+                    <small class="text-muted">Selecione ou digite novas tags</small>
+                </div>
+            </div>
+
+            <!-- Featured Image -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Imagem Destacada</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="file" name="featuredImage" class="form-control" accept="image/*" id="featured-image" />
+                        <small class="text-muted">
+                            Formato 16:9, máximo 1600x900px, 2MB<br>
+                            Mínimo 535x300px
+                        </small>
+                    </div>
+                    <div id="image-preview" class="d-none">
+                        <img id="preview-img" class="img-fluid rounded" style="max-height: 200px;" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Criar Post
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Initialize TinyMCE
+        tinymce.init({
+            selector: '#content-editor',
+            height: 400,
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+            menubar: false,
+            branding: false,
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px }',
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+
+        // Initialize Select2 for tags
+        $('#tags-select').select2({
+            theme: 'bootstrap-5',
+            tags: true,
+            tokenSeparators: [','],
+            placeholder: 'Selecione ou digite tags...'
+        });
+
+        // Image preview
+        document.getElementById('featured-image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('image-preview');
+                    const img = document.getElementById('preview-img');
+                    img.src = e.target.result;
+                    preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}
