@@ -22,7 +22,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             
             // Extract components
             var host = uriBuilder.Host;
-            var port = uriBuilder.Port;
+            var port = uriBuilder.Port == -1 ? 5432 : uriBuilder.Port; // Default PostgreSQL port
             var database = uriBuilder.Path.TrimStart('/');
             var username = uriBuilder.UserName;
             var password = uriBuilder.Password;
