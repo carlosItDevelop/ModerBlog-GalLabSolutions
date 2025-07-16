@@ -11,9 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     // Use PostgreSQL for development/Replit, easily changeable to SQL Server
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
-        ?? builder.Configuration.GetConnectionString("DefaultConnection") 
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+    
+    // Fix malformed connection string if it ends with incomplete sslmode parameter
+    if (!string.IsNullOrEmpty(connectionString) && connectionString.EndsWith("?sslmode"))
+    {
+        connectionString += "=require";
+    }
+    
+    connectionString ??= builder.Configuration.GetConnectionString("DefaultConnection") 
         ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
+        
     options.UseNpgsql(connectionString);
 });
 
