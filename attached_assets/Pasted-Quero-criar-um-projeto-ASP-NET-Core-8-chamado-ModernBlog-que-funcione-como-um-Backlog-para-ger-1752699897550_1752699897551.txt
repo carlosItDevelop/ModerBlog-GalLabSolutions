@@ -1,0 +1,63 @@
+Quero criar um projeto ASP.NET Core 8 chamado "ModernBlog" que funcione como um **Backlog** para gerenciamento de posts de blog e uma área pública para exibição dos conteúdos.
+
+### Contexto técnico:
+- Banco de dados padrão do Replit é PostgreSQL, mas minha aplicação de produção usará **SQL Server**.
+- Use o **Entity Framework Core** para ORM.
+- Todas as Primary Keys devem ser do tipo **GUID**.
+- Sistema de autenticação deve usar **MS Identity**.
+
+### Funcionalidades obrigatórias:
+
+#### 1. Backlog/Admin (Área interna do blog)
+- CRUD completo de posts, categorias, tags, comentários e usuários.
+- View para "Criar/Editar" post, com os campos:
+  - Título
+  - Descrição (usar um editor visual WYSIWYG compatível com **Bootstrap 5.3.2** — exemplo: TinyMCE, CKEditor, Summernote, etc.)
+  - Categoria (dropdown)
+  - Tags (multi-select usando **Select2** ou alternativa moderna compatível com Bootstrap)
+  - Imagem destacada (upload)
+- **Validações da Imagem Destacada**:
+  - Formato obrigatório 16:9
+  - Tamanho máximo: 1600x900px
+  - Peso máximo: 2MB
+  - Se possível, permitir crop para padrão 800x455px no upload, com restrição de tamanho mínimo de 535x300px.
+- Admin pode moderar comentários e controlar publicações (rascunho/publicado).
+
+#### 2. Área Pública (Exposição do blog)
+- Página inicial com listagem moderna dos posts, cada um apresentando:
+  - Título, resumo, imagem destacada (formato 800x455px), autor, data de publicação, visualizações, likes, categorias e tags.
+  - Ícones para quantidade de visualizações e likes.
+- **Paginação** para navegar entre posts anteriores/posteriores.
+- Links de **posts relacionados** na visualização do post único.
+- **Apresentador de slides** (carousel) mostrando os posts em destaque na home, usando as imagens padronizadas.
+- Ao acessar um post único, a imagem destacada aparece no topo.
+- Comentários só são permitidos para usuários autenticados.
+- Sidebar à direita com:
+  - Área para login (Identity)
+  - Sessão de posts recentes
+  - Sessão de posts por categoria
+  - Sessão de posts mais comentados/em destaque
+
+#### Observações técnicas
+- Use migrations do EF Core para gerar as tabelas, mesmo que inicialmente no PostgreSQL.
+- Use GUID para todas as PKs nas entidades principais.
+- Prepare para migração fácil do banco para SQL Server posteriormente.
+- Todo front-end usando **Bootstrap 5.3.2** e integração visual consistente, responsivo e elegante.
+- Onde possível, prefira componentes visuais já prontos ou open source de fácil customização.
+- Se possível, escreva testes básicos de integração para rotas principais.
+
+#### Dica: o código gerado não precisa ser 100% pronto, mas as principais partes estruturadas para facilitar continuação do desenvolvimento!
+
+---
+
+## Sugestões e pontos para refino:
+
+1. **SEO**: já deixar pronto para fácil customização de meta tags, URLs amigáveis e Sitemap.xml.
+2. **Editor de imagens**: Avalie (depois) o uso de alguma biblioteca JS de crop (exemplo: Cropper.js), caso queira deixar o corte ainda mais flexível na imagem destacada.
+3. **Web API**: Considere, no futuro, separar a API dos dados da camada de apresentação, para permitir criação de app mobile, etc.
+4. **Likes e visualizações**: Deixe bem explícito que não precisam de autenticação para visualizar/curtir, mas os comentários sim.
+5. **Política de Spam**: Um Captcha (Google ou open-source) pode ser útil na área de comentários, para evitar spam.
+6. **Temas customizáveis**: Se quiser expandir, pode prever suporte a temas (cores/layout).
+7. **Documentação do código**: Solicite que toda a estrutura gerada venha com comentários explicativos.
+
+Se quiser incluir algum extra, como suporte a Markdown nos posts ou integração fácil com webhooks para disparar notificações, só avisar!
