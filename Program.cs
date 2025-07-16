@@ -13,14 +13,28 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     // Use PostgreSQL for development/Replit, easily changeable to SQL Server
     var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
     
-    // Fix malformed connection string if it ends with incomplete sslmode parameter
-    if (!string.IsNullOrEmpty(connectionString) && connectionString.EndsWith("?sslmode"))
+    if (!string.IsNullOrEmpty(connectionString))
     {
-        connectionString += "=require";
+        // Fix malformed connection string if it ends with incomplete sslmode parameter
+        if (connectionString.EndsWith("?sslmode"))
+        {
+            connectionString += "=require";
+        }
+        else if (connectionString.EndsWith("?sslmode="))
+        {
+            connectionString += "require";
+        }
+        // Add SSL mode if not present
+        else if (!connectionString.Contains("sslmode="))
+        {
+            connectionString += connectionString.Contains("?") ? "&sslmode=require" : "?sslmode=require";
+        }
     }
-    
-    connectionString ??= builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
+    else
+    {
+        connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
+    }
         
     options.UseNpgsql(connectionString);
 });

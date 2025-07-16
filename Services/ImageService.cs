@@ -1,4 +1,3 @@
-
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
@@ -93,9 +92,9 @@ public class ImageService : IImageService
 
             var newFileName = $"resized_{width}x{height}_{Path.GetFileName(fullPath)}";
             var newPath = Path.Combine(Path.GetDirectoryName(fullPath)!, newFileName);
-            
+
             await image.SaveAsJpegAsync(newPath);
-            
+
             return imagePath.Replace(Path.GetFileName(imagePath), newFileName);
         }
     }
