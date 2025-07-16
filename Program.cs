@@ -15,19 +15,27 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     
     if (!string.IsNullOrEmpty(connectionString))
     {
-        // Fix malformed connection string if it ends with incomplete sslmode parameter
-        if (connectionString.EndsWith("?sslmode"))
+        // Parse and rebuild the connection string to ensure it's valid
+        try
         {
-            connectionString += "=require";
+            var uriBuilder = new UriBuilder(connectionString);
+            
+            // Extract components
+            var host = uriBuilder.Host;
+            var port = uriBuilder.Port;
+            var database = uriBuilder.Path.TrimStart('/');
+            var username = uriBuilder.UserName;
+            var password = uriBuilder.Password;
+            
+            // Build proper Npgsql connection string
+            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
         }
-        else if (connectionString.EndsWith("?sslmode="))
+        catch (Exception ex)
         {
-            connectionString += "require";
-        }
-        // Add SSL mode if not present
-        else if (!connectionString.Contains("sslmode="))
-        {
-            connectionString += connectionString.Contains("?") ? "&sslmode=require" : "?sslmode=require";
+            // Fallback to local configuration if parsing fails
+            Console.WriteLine($"Failed to parse DATABASE_URL: {ex.Message}");
+            connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
         }
     }
     else
