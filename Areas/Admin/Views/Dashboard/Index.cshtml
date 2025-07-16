@@ -1,74 +1,76 @@
 
-@model IEnumerable<ModernBlog.Models.Post>
 @{
     ViewData["Title"] = "Dashboard";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    Layout = "_AdminLayout";
+    var totalPosts = (int)ViewBag.TotalPosts;
+    var recentPosts = ViewBag.RecentPosts as IEnumerable<ModernBlog.Models.Post>;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">Dashboard</h1>
+    </div>
 </div>
 
-<!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-primary text-white">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-primary border-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@ViewBag.TotalPosts</h4>
-                        <p class="mb-0">Total de Posts</p>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="small fw-bold text-primary text-uppercase mb-1">Total de Posts</div>
+                        <div class="h5 mb-0">@totalPosts</div>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-file-text fs-1"></i>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-file-text fs-2 text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-success text-white">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-success border-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@ViewBag.PublishedPosts</h4>
-                        <p class="mb-0">Posts Publicados</p>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="small fw-bold text-success text-uppercase mb-1">Posts Publicados</div>
+                        <div class="h5 mb-0">@totalPosts</div>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-check-circle fs-1"></i>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle fs-2 text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-warning text-white">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-info border-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@ViewBag.DraftPosts</h4>
-                        <p class="mb-0">Rascunhos</p>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="small fw-bold text-info text-uppercase mb-1">Visualizações</div>
+                        <div class="h5 mb-0">@(recentPosts?.Sum(p => p.ViewCount) ?? 0)</div>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-pencil fs-1"></i>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-eye fs-2 text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-info text-white">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-warning border-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@ViewBag.TotalCategories</h4>
-                        <p class="mb-0">Categorias</p>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="small fw-bold text-warning text-uppercase mb-1">Curtidas</div>
+                        <div class="h5 mb-0">@(recentPosts?.Sum(p => p.LikeCount) ?? 0)</div>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-tags fs-1"></i>
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-heart fs-2 text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -77,36 +79,41 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
-        <!-- Recent Posts -->
-        <div class="card">
+    <div class="col-lg-6">
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Posts Recentes</h5>
+                <i class="bi bi-file-text me-1"></i>
+                Posts Recentes
             </div>
             <div class="card-body">
-                @if (Model.Any())
+                @if (recentPosts?.Any() == true)
                 {
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-borderless">
                             <thead>
                                 <tr>
                                     <th>Título</th>
-                                    <th>Autor</th>
                                     <th>Status</th>
                                     <th>Data</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var post in Model)
+                                @foreach (var post in recentPosts.Take(5))
                                 {
                                     <tr>
                                         <td>
-                                            <strong>@post.Title</strong>
-                                            <br>
-                                            <small class="text-muted">@post.Category.Name</small>
+                                            <div class="d-flex align-items-center">
+                                                @if (!string.IsNullOrEmpty(post.FeaturedImageUrl))
+                                                {
+                                                    <img src="@post.FeaturedImageUrl" alt="@post.Title" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                                }
+                                                <div>
+                                                    <div class="fw-bold">@post.Title</div>
+                                                    <div class="small text-muted">@post.Author?.FullName</div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td>@post.Author.FullName</td>
                                         <td>
                                             @if (post.IsPublished)
                                             {
@@ -119,8 +126,7 @@
                                         </td>
                                         <td>@post.CreatedAt.ToString("dd/MM/yyyy")</td>
                                         <td>
-                                            <a asp-controller="Posts" asp-action="Edit" asp-route-id="@post.Id" 
-                                               class="btn btn-sm btn-outline-primary">
+                                            <a href="@Url.Action("Edit", "Posts", new { id = post.Id })" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         </td>
@@ -129,57 +135,40 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="text-center">
+                        <a href="@Url.Action("Index", "Posts")" class="btn btn-primary">Ver Todos os Posts</a>
+                    </div>
                 }
                 else
                 {
-                    <p class="text-muted">Nenhum post encontrado.</p>
+                    <div class="text-center py-4">
+                        <i class="bi bi-file-text display-4 text-muted"></i>
+                        <p class="text-muted mt-2">Nenhum post encontrado</p>
+                        <a href="@Url.Action("Create", "Posts")" class="btn btn-primary">Criar Primeiro Post</a>
+                    </div>
                 }
             </div>
         </div>
     </div>
     
-    <div class="col-lg-4">
-        <!-- Quick Actions -->
+    <div class="col-lg-6">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+                <i class="bi bi-speedometer2 me-1"></i>
+                Ações Rápidas
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a asp-controller="Posts" asp-action="Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>Novo Post
+                    <a href="@Url.Action("Create", "Posts")" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Novo Post
                     </a>
-                    <a asp-controller="Posts" asp-action="Index" class="btn btn-outline-primary">
-                        <i class="bi bi-list me-1"></i>Gerenciar Posts
+                    <a href="@Url.Action("Index", "Posts")" class="btn btn-primary">
+                        <i class="bi bi-file-text"></i> Gerenciar Posts
+                    </a>
+                    <a href="@Url.Action("Index", "Home", new { area = "" })" class="btn btn-outline-secondary" target="_blank">
+                        <i class="bi bi-eye"></i> Visualizar Site
                     </a>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Stats Summary -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Resumo</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <i class="bi bi-tags me-2"></i>
-                        Tags: <strong>@ViewBag.TotalTags</strong>
-                    </li>
-                    <li class="mb-2">
-                        <i class="bi bi-chat-dots me-2"></i>
-                        Comentários: <strong>@ViewBag.TotalComments</strong>
-                    </li>
-                    <li class="mb-2">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        Pendentes: <strong>@ViewBag.PendingComments</strong>
-                    </li>
-                    <li>
-                        <i class="bi bi-people me-2"></i>
-                        Usuários: <strong>@ViewBag.TotalUsers</strong>
-                    </li>
-                </ul>
             </div>
         </div>
     </div>

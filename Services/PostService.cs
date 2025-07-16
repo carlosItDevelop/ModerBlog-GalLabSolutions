@@ -14,7 +14,7 @@ public class PostService : IPostService
         _context = context;
     }
 
-    public async Task<IEnumerable<Post>> GetPublishedPostsAsync(int page = 1, int pageSize = 10)
+    public async Task<IEnumerable<Post>> GetPublishedPostsAsync(int page = 1, int pageSize = 6)
     {
         return await _context.Posts
             .Include(p => p.Author)
@@ -50,28 +50,28 @@ public class PostService : IPostService
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Post>> GetMostViewedPostsAsync(int count = 5)
+    public async Task<IEnumerable<Post>> GetPostsByCategoryAsync(Guid categoryId, int count = 5)
     {
         return await _context.Posts
             .Include(p => p.Author)
             .Include(p => p.Category)
-            .Where(p => p.IsPublished)
-            .OrderByDescending(p => p.ViewCount)
+            .Where(p => p.IsPublished && p.CategoryId == categoryId)
+            .OrderByDescending(p => p.PublishedAt)
             .Take(count)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Post>> GetPostsByCategoryAsync(Guid categoryId, int page = 1, int pageSize = 10)
+    public async Task<IEnumerable<Post>> GetRelatedPostsAsync(Guid postId, int count = 3)
     {
+        var post = await _context.Posts.FindAsync(postId);
+        if (post == null) return new List<Post>();
+
         return await _context.Posts
             .Include(p => p.Author)
             .Include(p => p.Category)
-            .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-            .Where(p => p.IsPublished && p.CategoryId == categoryId)
+            .Where(p => p.IsPublished && p.Id != postId && p.CategoryId == post.CategoryId)
             .OrderByDescending(p => p.PublishedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+            .Take(count)
             .ToListAsync();
     }
 
@@ -96,27 +96,57 @@ public class PostService : IPostService
                 .ThenInclude(pt => pt.Tag)
             .Include(p => p.Comments.Where(c => c.IsApproved))
                 .ThenInclude(c => c.Author)
-            .FirstOrDefaultAsync(p => p.IsPublished && p.Title.ToLower().Replace(" ", "-") == slug.ToLower());
+            .FirstOrDefaultAsync(p => p.IsPublished && p.Title.ToLower().Replace(" ", "-") == slug);
     }
 
-    public async Task<IEnumerable<Post>> GetRelatedPostsAsync(Guid postId, int count = 3)
+    public async Task<IEnumerable<Category>> GetCategoriesAsync()
     {
-        var post = await _context.Posts
-            .Include(p => p.PostTags)
-            .FirstOrDefaultAsync(p => p.Id == postId);
-
-        if (post == null) return new List<Post>();
-
-        var tagIds = post.PostTags.Select(pt => pt.TagId).ToList();
-
-        return await _context.Posts
-            .Include(p => p.Author)
-            .Include(p => p.Category)
-            .Where(p => p.IsPublished && p.Id != postId && 
-                   p.PostTags.Any(pt => tagIds.Contains(pt.TagId)))
-            .OrderByDescending(p => p.PublishedAt)
-            .Take(count)
+        return await _context.Categories
+            .OrderBy(c => c.Name)
             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Tag>> GetTagsAsync()
+    {
+        return await _context.Tags
+            .OrderBy(t => t.Name)
+            .ToListAsync();
+    }
+
+    public async Task<Post> CreatePostAsync(Post post)
+    {
+        post.UpdatedAt = DateTime.UtcNow;
+        if (post.IsPublished && post.PublishedAt == null)
+        {
+            post.PublishedAt = DateTime.UtcNow;
+        }
+
+        _context.Posts.Add(post);
+        await _context.SaveChangesAsync();
+        return post;
+    }
+
+    public async Task<Post> UpdatePostAsync(Post post)
+    {
+        post.UpdatedAt = DateTime.UtcNow;
+        if (post.IsPublished && post.PublishedAt == null)
+        {
+            post.PublishedAt = DateTime.UtcNow;
+        }
+
+        _context.Posts.Update(post);
+        await _context.SaveChangesAsync();
+        return post;
+    }
+
+    public async Task DeletePostAsync(Guid id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post != null)
+        {
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task IncrementViewCountAsync(Guid postId)
@@ -129,44 +159,41 @@ public class PostService : IPostService
         }
     }
 
-    public async Task<bool> ToggleLikeAsync(Guid postId, string? ipAddress, Guid? userId = null)
+    public async Task<bool> ToggleLikeAsync(Guid postId, Guid userId)
     {
         var existingLike = await _context.PostLikes
-            .FirstOrDefaultAsync(pl => pl.PostId == postId && 
-                                     ((userId.HasValue && pl.UserId == userId) || 
-                                      (!userId.HasValue && pl.IpAddress == ipAddress)));
+            .FirstOrDefaultAsync(pl => pl.PostId == postId && pl.UserId == userId);
 
         if (existingLike != null)
         {
             _context.PostLikes.Remove(existingLike);
             var post = await _context.Posts.FindAsync(postId);
             if (post != null) post.LikeCount--;
-            await _context.SaveChangesAsync();
-            return false;
         }
         else
         {
-            var newLike = new PostLike
-            {
-                PostId = postId,
-                UserId = userId,
-                IpAddress = ipAddress
-            };
-            _context.PostLikes.Add(newLike);
+            _context.PostLikes.Add(new PostLike { PostId = postId, UserId = userId });
             var post = await _context.Posts.FindAsync(postId);
             if (post != null) post.LikeCount++;
-            await _context.SaveChangesAsync();
-            return true;
         }
+
+        await _context.SaveChangesAsync();
+        return existingLike == null;
     }
 
     public async Task<int> GetTotalPostsCountAsync()
     {
-        return await _context.Posts.CountAsync();
+        return await _context.Posts.CountAsync(p => p.IsPublished);
     }
 
-    public async Task<int> GetTotalPublishedPostsCountAsync()
+    public async Task<IEnumerable<Post>> GetAllPostsAsync(int page = 1, int pageSize = 10)
     {
-        return await _context.Posts.CountAsync(p => p.IsPublished);
+        return await _context.Posts
+            .Include(p => p.Author)
+            .Include(p => p.Category)
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
     }
 }

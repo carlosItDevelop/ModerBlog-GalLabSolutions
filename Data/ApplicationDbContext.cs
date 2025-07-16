@@ -8,16 +8,15 @@ namespace ModernBlog.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
     public DbSet<Post> Posts { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Tag> Tags { get; set; }
-    public DbSet<PostTag> PostTags { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<PostTag> PostTags { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -38,34 +37,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             .WithMany(t => t.PostTags)
             .HasForeignKey(pt => pt.TagId);
 
-        // Configure Post relationships
-        builder.Entity<Post>()
-            .HasOne(p => p.Author)
-            .WithMany(u => u.Posts)
-            .HasForeignKey(p => p.AuthorId);
+        // Configure PostLike relationship
+        builder.Entity<PostLike>()
+            .HasKey(pl => new { pl.PostId, pl.UserId });
 
-        builder.Entity<Post>()
-            .HasOne(p => p.Category)
-            .WithMany(c => c.Posts)
-            .HasForeignKey(p => p.CategoryId);
-
-        // Configure Comment relationships
-        builder.Entity<Comment>()
-            .HasOne(c => c.Post)
-            .WithMany(p => p.Comments)
-            .HasForeignKey(c => c.PostId);
-
-        builder.Entity<Comment>()
-            .HasOne(c => c.Author)
-            .WithMany(u => u.Comments)
-            .HasForeignKey(c => c.AuthorId);
-
-        builder.Entity<Comment>()
-            .HasOne(c => c.ParentComment)
-            .WithMany(c => c.Replies)
-            .HasForeignKey(c => c.ParentCommentId);
-
-        // Configure PostLike relationships
         builder.Entity<PostLike>()
             .HasOne(pl => pl.Post)
             .WithMany(p => p.PostLikes)
@@ -76,17 +51,46 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             .WithMany(u => u.PostLikes)
             .HasForeignKey(pl => pl.UserId);
 
-        // Indexes for performance
+        // Configure Post relationships
+        builder.Entity<Post>()
+            .HasOne(p => p.Author)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Post>()
+            .HasOne(p => p.Category)
+            .WithMany(c => c.Posts)
+            .HasForeignKey(p => p.CategoryId);
+
+        // Configure Comment relationship
+        builder.Entity<Comment>()
+            .HasOne(c => c.Post)
+            .WithMany(p => p.Comments)
+            .HasForeignKey(c => c.PostId);
+
+        builder.Entity<Comment>()
+            .HasOne(c => c.Author)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(c => c.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Configure indexes
+        builder.Entity<Post>()
+            .HasIndex(p => p.Title);
+
         builder.Entity<Post>()
             .HasIndex(p => p.IsPublished);
 
         builder.Entity<Post>()
-            .HasIndex(p => p.PublishedAt);
+            .HasIndex(p => p.CreatedAt);
 
-        builder.Entity<Post>()
-            .HasIndex(p => p.ViewCount);
+        builder.Entity<Category>()
+            .HasIndex(c => c.Name)
+            .IsUnique();
 
-        builder.Entity<Post>()
-            .HasIndex(p => p.LikeCount);
+        builder.Entity<Tag>()
+            .HasIndex(t => t.Name)
+            .IsUnique();
     }
 }

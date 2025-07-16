@@ -9,71 +9,102 @@ public static class SeedData
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
-        using var context = new ApplicationDbContext(
-            serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-
+        // Ensure database is created
         await context.Database.EnsureCreatedAsync();
 
         // Create roles
-        string[] roleNames = { "Admin", "Author", "User" };
-        foreach (var roleName in roleNames)
+        string[] roles = { "Admin", "Author", "User" };
+        foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(roleName))
+            if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
+                await roleManager.CreateAsync(new IdentityRole<Guid>(role));
             }
         }
 
         // Create admin user
-        var adminUser = await userManager.FindByEmailAsync("admin@modernblog.com");
+        var adminEmail = "admin@modernblog.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        
         if (adminUser == null)
         {
             adminUser = new ApplicationUser
             {
-                UserName = "admin@modernblog.com",
-                Email = "admin@modernblog.com",
+                UserName = adminEmail,
+                Email = adminEmail,
                 FirstName = "Admin",
                 LastName = "User",
                 EmailConfirmed = true
             };
 
-            await userManager.CreateAsync(adminUser, "Admin123!");
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
         }
 
-        // Create default categories
+        // Seed categories if none exist
         if (!await context.Categories.AnyAsync())
         {
             var categories = new[]
             {
-                new Category { Name = "Tecnologia", Description = "Posts sobre tecnologia e inovação", Color = "#007bff" },
-                new Category { Name = "Desenvolvimento", Description = "Artigos sobre desenvolvimento de software", Color = "#28a745" },
-                new Category { Name = "Design", Description = "Posts sobre design e UX/UI", Color = "#fd7e14" },
-                new Category { Name = "Negócios", Description = "Conteúdo sobre negócios e empreendedorismo", Color = "#6610f2" }
+                new Category { Name = "Tecnologia", Description = "Posts sobre tecnologia e programação", Color = "#007bff" },
+                new Category { Name = "Lifestyle", Description = "Posts sobre estilo de vida", Color = "#28a745" },
+                new Category { Name = "Negócios", Description = "Posts sobre negócios e empreendedorismo", Color = "#ffc107" },
+                new Category { Name = "Educação", Description = "Posts educacionais", Color = "#17a2b8" }
             };
 
             context.Categories.AddRange(categories);
             await context.SaveChangesAsync();
         }
 
-        // Create default tags
+        // Seed tags if none exist
         if (!await context.Tags.AnyAsync())
         {
             var tags = new[]
             {
-                new Tag { Name = "ASP.NET Core" },
                 new Tag { Name = "C#" },
-                new Tag { Name = "Entity Framework" },
-                new Tag { Name = "Bootstrap" },
+                new Tag { Name = "ASP.NET Core" },
                 new Tag { Name = "JavaScript" },
-                new Tag { Name = "SQL Server" },
-                new Tag { Name = "PostgreSQL" }
+                new Tag { Name = "React" },
+                new Tag { Name = "Programming" },
+                new Tag { Name = "Web Development" },
+                new Tag { Name = "Tutorial" },
+                new Tag { Name = "Tips" }
             };
 
             context.Tags.AddRange(tags);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed sample posts if none exist
+        if (!await context.Posts.AnyAsync())
+        {
+            var category = await context.Categories.FirstAsync();
+            var samplePosts = new[]
+            {
+                new Post
+                {
+                    Title = "Bem-vindo ao ModernBlog",
+                    Content = "<p>Este é o primeiro post do nosso blog moderno. Aqui você encontrará conteúdo de qualidade sobre tecnologia, programação e muito mais.</p>",
+                    Summary = "Post de boas-vindas ao nosso blog",
+                    IsPublished = true,
+                    IsFeatured = true,
+                    PublishedAt = DateTime.UtcNow,
+                    AuthorId = adminUser.Id,
+                    CategoryId = category.Id,
+                    ViewCount = 10,
+                    LikeCount = 5
+                }
+            };
+
+            context.Posts.AddRange(samplePosts);
             await context.SaveChangesAsync();
         }
     }

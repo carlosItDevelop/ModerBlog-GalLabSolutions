@@ -1,40 +1,28 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ModernBlog.Data;
-using Microsoft.EntityFrameworkCore;
+using ModernBlog.Services;
 
 namespace ModernBlog.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class DashboardController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IPostService _postService;
 
-    public DashboardController(ApplicationDbContext context)
+    public DashboardController(IPostService postService)
     {
-        _context = context;
+        _postService = postService;
     }
 
     public async Task<IActionResult> Index()
     {
-        ViewBag.TotalPosts = await _context.Posts.CountAsync();
-        ViewBag.PublishedPosts = await _context.Posts.CountAsync(p => p.IsPublished);
-        ViewBag.DraftPosts = await _context.Posts.CountAsync(p => !p.IsPublished);
-        ViewBag.TotalCategories = await _context.Categories.CountAsync();
-        ViewBag.TotalTags = await _context.Tags.CountAsync();
-        ViewBag.TotalComments = await _context.Comments.CountAsync();
-        ViewBag.PendingComments = await _context.Comments.CountAsync(c => !c.IsApproved);
-        ViewBag.TotalUsers = await _context.Users.CountAsync();
+        var recentPosts = await _postService.GetAllPostsAsync(1, 10);
+        var totalPosts = await _postService.GetTotalPostsCountAsync();
 
-        var recentPosts = await _context.Posts
-            .Include(p => p.Author)
-            .Include(p => p.Category)
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(5)
-            .ToListAsync();
+        ViewBag.TotalPosts = totalPosts;
+        ViewBag.RecentPosts = recentPosts;
 
-        return View(recentPosts);
+        return View();
     }
 }

@@ -7,34 +7,41 @@ namespace ModernBlog.Services;
 public class ImageService : IImageService
 {
     private readonly IWebHostEnvironment _environment;
-    private readonly long _maxFileSize = 2 * 1024 * 1024; // 2MB
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+    private readonly IConfiguration _configuration;
 
-    public ImageService(IWebHostEnvironment environment)
+    public ImageService(IWebHostEnvironment environment, IConfiguration configuration)
     {
         _environment = environment;
+        _configuration = configuration;
     }
 
-    public async Task<string?> SaveImageAsync(IFormFile file, string folder = "uploads")
+    public async Task<string> SaveImageAsync(IFormFile imageFile, string subfolder = "")
     {
-        if (!ValidateImage(file))
-            return null;
+        if (!ValidateImage(imageFile))
+            throw new ArgumentException("Invalid image file");
 
-        var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", folder);
-        Directory.CreateDirectory(uploadsFolder);
+        var uploadPath = Path.Combine(_environment.WebRootPath, "images", "uploads", subfolder);
+        Directory.CreateDirectory(uploadPath);
 
-        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+        var filePath = Path.Combine(uploadPath, fileName);
 
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        using (var image = await Image.LoadAsync(imageFile.OpenReadStream()))
         {
-            await file.CopyToAsync(fileStream);
+            // Resize to featured image size (800x450) if larger
+            if (image.Width > 800 || image.Height > 450)
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(800, 450),
+                    Mode = ResizeMode.Crop
+                }));
+            }
+
+            await image.SaveAsJpegAsync(filePath);
         }
 
-        // Auto-resize to featured image size (800x455)
-        await ResizeImageAsync(filePath, 800, 455);
-
-        return Path.Combine("images", folder, uniqueFileName).Replace("\\", "/");
+        return $"/images/uploads/{subfolder}/{fileName}".Replace("//", "/");
     }
 
     public async Task<bool> DeleteImageAsync(string imagePath)
@@ -50,63 +57,46 @@ public class ImageService : IImageService
         }
         catch
         {
-            // Log error
+            // Log error in production
         }
         return false;
     }
 
-    public bool ValidateImage(IFormFile file)
+    public bool ValidateImage(IFormFile imageFile)
     {
-        if (file == null || file.Length == 0)
+        if (imageFile == null || imageFile.Length == 0)
             return false;
 
-        if (file.Length > _maxFileSize)
+        var maxSize = _configuration.GetValue<int>("Blog:MaxImageSize", 2097152); // 2MB default
+        if (imageFile.Length > maxSize)
             return false;
 
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!_allowedExtensions.Contains(extension))
-            return false;
+        var allowedTypes = _configuration.GetSection("Blog:AllowedImageTypes").Get<string[]>() 
+            ?? new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
 
-        // Check if it's a valid image
-        try
-        {
-            using var image = Image.Load(file.OpenReadStream());
-            // Check aspect ratio (should be close to 16:9)
-            var aspectRatio = (double)image.Width / image.Height;
-            if (aspectRatio < 1.7 || aspectRatio > 1.8) // Allow some tolerance
-                return false;
-
-            // Check minimum dimensions
-            if (image.Width < 535 || image.Height < 300)
-                return false;
-
-            // Check maximum dimensions
-            if (image.Width > 1600 || image.Height > 900)
-                return false;
-        }
-        catch
-        {
-            return false;
-        }
-
-        return true;
+        return allowedTypes.Contains(imageFile.ContentType.ToLower());
     }
 
-    public async Task<string?> ResizeImageAsync(string imagePath, int width, int height)
+    public async Task<string> ResizeImageAsync(string imagePath, int width, int height)
     {
-        try
+        var fullPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
+        if (!File.Exists(fullPath))
+            throw new FileNotFoundException("Image not found");
+
+        using (var image = await Image.LoadAsync(fullPath))
         {
-            var fullPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(width, height),
+                Mode = ResizeMode.Crop
+            }));
+
+            var newFileName = $"resized_{width}x{height}_{Path.GetFileName(fullPath)}";
+            var newPath = Path.Combine(Path.GetDirectoryName(fullPath)!, newFileName);
             
-            using var image = await Image.LoadAsync(fullPath);
-            image.Mutate(x => x.Resize(width, height, KnownResamplers.Lanczos3));
-            await image.SaveAsync(fullPath);
+            await image.SaveAsJpegAsync(newPath);
             
-            return imagePath;
-        }
-        catch
-        {
-            return null;
+            return imagePath.Replace(Path.GetFileName(imagePath), newFileName);
         }
     }
 }
