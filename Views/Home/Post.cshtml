@@ -6,182 +6,13 @@
 
 <div class="container py-4">
     <div class="row">
-        <div class="col-lg-8">
-            <!-- Post Header -->
-            <article class="mb-4">
-                @if (!string.IsNullOrEmpty(Model.FeaturedImageUrl))
-                {
-                    <img src="@Model.FeaturedImageUrl" alt="@Model.Title" class="img-fluid rounded mb-4" style="width: 100%; height: 400px; object-fit: cover;">
-                }
-
-                <h1 class="display-5 mb-3">@Model.Title</h1>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <span class="text-muted">Por <strong>@Model.Author?.FullName</strong></span>
-                        <span class="text-muted ms-3">@Model.PublishedAt?.ToString("dd 'de' MMMM 'de' yyyy")</span>
-                    </div>
-                    <div>
-                        <span class="badge bg-primary">@Model.Category?.Name</span>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    @foreach (var postTag in Model.PostTags)
-                    {
-                        <span class="badge bg-secondary me-1">@postTag.Tag.Name</span>
-                    }
-                </div>
-
-                <!-- Post Content -->
-                <div class="post-content mb-4">
-                    @Html.Raw(Model.Content)
-                </div>
-
-                <!-- Post Actions -->
-                <div class="d-flex justify-content-between align-items-center py-3 border-top border-bottom">
-                    <div>
-                        <i class="bi bi-eye"></i> @Model.ViewCount visualizações
-                    </div>
-                    <div>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <button class="btn btn-outline-danger btn-sm" onclick="toggleLike('@Model.Id')">
-                                <i class="bi bi-heart"></i> <span id="like-count">@Model.LikeCount</span>
-                            </button>
-                        }
-                        else
-                        {
-                            <span class="text-muted">
-                                <i class="bi bi-heart"></i> @Model.LikeCount curtidas
-                            </span>
-                        }
-                    </div>
-                </div>
-            </article>
-
-            <!-- Comments Section -->
-            <section class="mt-5">
-                <h4 class="mb-4">Comentários (@Model.Comments.Count)</h4>
-
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <!-- Comment Form -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h6>Deixe seu comentário</h6>
-                            <form method="post" action="#">
-                                <div class="mb-3">
-                                    <textarea class="form-control" rows="4" placeholder="Digite seu comentário..." required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Enviar Comentário</button>
-                            </form>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> 
-                        <a href="@Url.Page("/Account/Login", new { area = "Identity" })">Faça login</a> para comentar neste post.
-                    </div>
-                }
-
-                <!-- Comments List -->
-                @if (Model.Comments.Any())
-                {
-                    @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
-                    {
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h6 class="mb-0">@comment.Author?.FullName</h6>
-                                    <small class="text-muted">@comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
-                                </div>
-                                <p class="mb-0">@comment.Content</p>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted text-center py-4">Seja o primeiro a comentar!</p>
-                }
-            </section>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Related Posts -->
-            @if (relatedPosts?.Any() == true)
-            {
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5><i class="bi bi-file-text"></i> Posts Relacionados</h5>
-                    </div>
-                    <div class="card-body">
-                        @foreach (var relatedPost in relatedPosts)
-                        {
-                            <div class="d-flex mb-3">
-                                @if (!string.IsNullOrEmpty(relatedPost.FeaturedImageUrl))
-                                {
-                                    <img src="@relatedPost.FeaturedImageUrl" alt="@relatedPost.Title" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                }
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">
-                                        <a href="@Url.Action("Post", "Home", new { slug = relatedPost.Slug })" class="text-decoration-none">@relatedPost.Title</a>
-                                    </h6>
-                                    <small class="text-muted">@relatedPost.PublishedAt?.ToString("dd/MM/yyyy")</small>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        async function toggleLike(postId) {
-            try {
-                const response = await fetch('@Url.Action("ToggleLike", "Home")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify({ postId: postId })
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    const likeCount = document.getElementById('like-count');
-                    const currentCount = parseInt(likeCount.textContent);
-                    likeCount.textContent = result.liked ? currentCount + 1 : currentCount - 1;
-                }
-            } catch (error) {
-                console.error('Error toggling like:', error);
-            }
-        }
-    </script>
-}
-@model ModernBlog.Models.Post
-@{
-    ViewData["Title"] = Model.Title;
-    var relatedPosts = ViewBag.RelatedPosts as IEnumerable<ModernBlog.Models.Post>;
-}
-
-<div class="container py-4">
-    <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
             <article class="mb-5">
                 <!-- Post Header -->
                 <header class="mb-4">
                     <h1 class="display-5 fw-bold">@Model.Title</h1>
-                    
+
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
                         <div class="d-flex align-items-center">
                             <i class="bi bi-person-circle me-2"></i>
@@ -242,6 +73,55 @@
                     </div>
                 }
             </article>
+
+            <!-- Comments Section -->
+            <section class="mt-5">
+                <h4 class="mb-4">Comentários (@Model.Comments.Count)</h4>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <!-- Comment Form -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6>Deixe seu comentário</h6>
+                            <form method="post" action="#">
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="4" placeholder="Digite seu comentário..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Enviar Comentário</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <a href="@Url.Page("/Account/Login", new { area = "Identity" })">Faça login</a> para comentar neste post.
+                    </div>
+                }
+
+                <!-- Comments List -->
+                @if (Model.Comments.Any())
+                {
+                    @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                    {
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">@comment.Author?.FullName</h6>
+                                    <small class="text-muted">@comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                                <p class="mb-0">@comment.Content</p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4">Seja o primeiro a comentar!</p>
+                }
+            </section>
         </div>
 
         <!-- Sidebar -->
@@ -311,9 +191,9 @@
         document.getElementById('likeBtn')?.addEventListener('click', function() {
             const btn = this;
             const postId = btn.dataset.postId;
-            
+
             btn.classList.add('loading');
-            
+
             fetch('@Url.Action("ToggleLike", "Home")', {
                 method: 'POST',
                 headers: {

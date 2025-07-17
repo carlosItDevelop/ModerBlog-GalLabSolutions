@@ -43,7 +43,7 @@ public class ImageService : IImageService
         return $"/images/uploads/{subfolder}/{fileName}".Replace("//", "/");
     }
 
-    public async Task<bool> DeleteImageAsync(string imagePath)
+    public Task<bool> DeleteImageAsync(string imagePath)
     {
         try
         {
@@ -51,14 +51,14 @@ public class ImageService : IImageService
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
-                return true;
+                return Task.FromResult(true);
             }
         }
         catch
         {
             // Log error in production
         }
-        return false;
+        return Task.FromResult(false);
     }
 
     public bool ValidateImage(IFormFile imageFile)
