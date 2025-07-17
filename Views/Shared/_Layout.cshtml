@@ -60,15 +60,69 @@
         @RenderBody()
     </main>
 
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="bg-dark text-light py-5 mt-5">
         <div class="container">
             <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-journal-text text-primary"></i> ModernBlog
+                    </h5>
+                    <p class="text-muted mb-3">
+                        Plataforma moderna para compartilhar conhecimento, experiências e insights com a comunidade.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-light hover-primary"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="#" class="text-light hover-primary"><i class="bi bi-twitter fs-5"></i></a>
+                        <a href="#" class="text-light hover-primary"><i class="bi bi-linkedin fs-5"></i></a>
+                        <a href="#" class="text-light hover-primary"><i class="bi bi-github fs-5"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Navegação</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="/" class="text-muted text-decoration-none hover-light">Início</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Sobre</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Contato</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Categorias Populares</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Tecnologia</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Negócios</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Lifestyle</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Educação</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Newsletter</h6>
+                    <p class="text-muted mb-3">Receba as últimas atualizações do blog</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control bg-secondary border-0 text-light" placeholder="Seu e-mail">
+                        <button class="btn btn-primary" type="button">
+                            <i class="bi bi-envelope"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Não enviamos spam. Cancele a qualquer momento.</small>
+                </div>
+            </div>
+            
+            <hr class="border-secondary my-4">
+            
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5><i class="bi bi-journal-text"></i> ModernBlog</h5>
-                    <p class="text-muted">Um blog moderno para compartilhar conhecimento e experiências.</p>
+                    <p class="text-muted mb-0">
+                        &copy; @DateTime.Now.Year ModernBlog. Todos os direitos reservados.
+                    </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="text-muted">&copy; @DateTime.Now.Year ModernBlog. Todos os direitos reservados.</p>
+                    <p class="text-muted mb-0">
+                        Desenvolvido com <i class="bi bi-heart-fill text-danger"></i> usando ASP.NET Core
+                    </p>
                 </div>
             </div>
         </div>
