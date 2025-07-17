@@ -86,21 +86,54 @@ public static class SeedData
         // Seed sample posts if none exist
         if (!await context.Posts.AnyAsync())
         {
-            var category = await context.Categories.FirstAsync();
+            var categories = await context.Categories.ToListAsync();
+            var techCategory = categories.First(c => c.Name == "Tecnologia");
+            var lifestyleCategory = categories.First(c => c.Name == "Lifestyle");
+            var businessCategory = categories.First(c => c.Name == "Negócios");
+
             var samplePosts = new[]
             {
                 new Post
                 {
                     Title = "Bem-vindo ao ModernBlog",
-                    Content = "<p>Este é o primeiro post do nosso blog moderno. Aqui você encontrará conteúdo de qualidade sobre tecnologia, programação e muito mais.</p>",
+                    Content = "<p>Este é o primeiro post do nosso blog moderno. Aqui você encontrará conteúdo de qualidade sobre tecnologia, programação e muito mais.</p><p>Nosso objetivo é compartilhar conhecimento e experiências que possam ajudar nossa comunidade a crescer profissionalmente.</p>",
                     Summary = "Post de boas-vindas ao nosso blog",
                     IsPublished = true,
                     IsFeatured = true,
+                    FeaturedImageUrl = "/images/imagem1.png",
+                    PublishedAt = DateTime.UtcNow.AddDays(-2),
+                    AuthorId = adminUser.Id,
+                    CategoryId = techCategory.Id,
+                    ViewCount = 45,
+                    LikeCount = 12
+                },
+                new Post
+                {
+                    Title = "As Tendências de Tecnologia para 2024",
+                    Content = "<p>A tecnologia continua evoluindo rapidamente, e 2024 promete ser um ano repleto de inovações.</p><p>Desde inteligência artificial até desenvolvimento web moderno, exploramos as principais tendências que moldarão o futuro.</p><p>Prepare-se para descobrir as tecnologias que todo desenvolvedor deveria conhecer!</p>",
+                    Summary = "Descubra as principais tendências tecnológicas que definirão 2024",
+                    IsPublished = true,
+                    IsFeatured = true,
+                    FeaturedImageUrl = "/images/imagem2.png",
+                    PublishedAt = DateTime.UtcNow.AddDays(-1),
+                    AuthorId = adminUser.Id,
+                    CategoryId = techCategory.Id,
+                    ViewCount = 78,
+                    LikeCount = 23
+                },
+                new Post
+                {
+                    Title = "Dicas de Produtividade para Desenvolvedores",
+                    Content = "<p>Ser produtivo como desenvolvedor vai muito além de escrever código rapidamente.</p><p>Neste post, compartilhamos estratégias práticas para otimizar seu workflow, desde a organização do ambiente de trabalho até técnicas de gerenciamento de tempo.</p><p>Aprenda como pequenas mudanças podem gerar grandes resultados na sua produtividade diária.</p>",
+                    Summary = "Estratégias práticas para aumentar sua produtividade como desenvolvedor",
+                    IsPublished = true,
+                    IsFeatured = true,
+                    FeaturedImageUrl = "/images/imagem3.png",
                     PublishedAt = DateTime.UtcNow,
                     AuthorId = adminUser.Id,
-                    CategoryId = category.Id,
-                    ViewCount = 10,
-                    LikeCount = 5
+                    CategoryId = lifestyleCategory.Id,
+                    ViewCount = 32,
+                    LikeCount = 8
                 }
             };
 
