@@ -190,6 +190,18 @@ img.lazy.loaded {
     background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 70%);
 }
 
+/* Fixed navbar styles */
+.navbar.fixed-top {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1030;
+}
+
+body {
+    padding-top: 76px; /* Height of navbar + margin */
+}
+
 /* Responsive design improvements */
 @media (max-width: 768px) {
     .navbar-brand {
