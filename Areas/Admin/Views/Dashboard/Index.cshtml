@@ -128,7 +128,7 @@
                                             <a href="@Url.Action("Edit", "Posts", new { id = post.Id })" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-											<a href="@Url.Action("Post", "Home", new { area = "", slug = post.Slug })" class="btn btn-sm btn-outline-primary">
+											<a href="/Home/Post?slug=@post.Slug" class="btn btn-sm btn-outline-secondary" target="_blank">
                                                 <i class="bi bi-eye"></i> Ver</a>
                                         </td>
                                     </tr>
