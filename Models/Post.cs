@@ -40,20 +40,5 @@ public class Post
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public virtual ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
 
-    public string Slug => Title.ToLowerInvariant()
-        .Replace(" ", "-")
-        .Replace("--", "-")
-        .Replace("ã", "a")
-        .Replace("õ", "o")
-        .Replace("ç", "c")
-        .Replace("á", "a")
-        .Replace("à", "a")
-        .Replace("â", "a")
-        .Replace("é", "e")
-        .Replace("ê", "e")
-        .Replace("í", "i")
-        .Replace("ó", "o")
-        .Replace("ô", "o")
-        .Replace("ú", "u")
-        .Replace("ü", "u");
+    public string Slug => Title.ToLower().Replace(" ", "-").Replace("--", "-");
 }

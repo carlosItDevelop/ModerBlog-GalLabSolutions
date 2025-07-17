@@ -96,7 +96,7 @@ public class PostService : IPostService
                 .ThenInclude(pt => pt.Tag)
             .Include(p => p.Comments.Where(c => c.IsApproved))
                 .ThenInclude(c => c.Author)
-            .FirstOrDefaultAsync(p => p.IsPublished && p.Slug == slug);
+            .FirstOrDefaultAsync(p => p.IsPublished && p.Title.ToLower().Replace(" ", "-") == slug);
     }
 
     public async Task<IEnumerable<Category>> GetCategoriesAsync()

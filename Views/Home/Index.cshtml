@@ -1,7 +1,4 @@
-The user wants to fix the link to individual posts and implement a "back to top" button with a fixed navbar.
-```
 
-```html
 @model IEnumerable<ModernBlog.Models.Post>
 @{
     ViewData["Title"] = "Início";
@@ -69,7 +66,7 @@ The user wants to fix the link to individual posts and implement a "back to top"
         <!-- Main Content -->
         <div class="col-lg-8">
             <h2 class="mb-4">Posts Recentes</h2>
-
+            
             @if (Model?.Any() == true)
             {
                 <div class="row">
@@ -84,7 +81,7 @@ The user wants to fix the link to individual posts and implement a "back to top"
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">@post.Title</h5>
                                     <p class="card-text flex-grow-1">@post.Summary</p>
-
+                                    
                                     <div class="mb-2">
                                         <span class="badge bg-primary">@post.Category?.Name</span>
                                         @foreach (var postTag in post.PostTags)
@@ -92,12 +89,12 @@ The user wants to fix the link to individual posts and implement a "back to top"
                                             <span class="badge bg-secondary">@postTag.Tag.Name</span>
                                         }
                                     </div>
-
+                                    
                                     <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
                                         <span>Por @post.Author?.FullName</span>
                                         <span>@post.PublishedAt?.ToString("dd/MM/yyyy")</span>
                                     </div>
-
+                                    
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <i class="bi bi-eye"></i> @post.ViewCount
@@ -122,14 +119,14 @@ The user wants to fix the link to individual posts and implement a "back to top"
                                     <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })">Anterior</a>
                                 </li>
                             }
-
+                            
                             @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
                                     <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
                                 </li>
                             }
-
+                            
                             @if (currentPage < totalPages)
                             {
                                 <li class="page-item">
@@ -216,30 +213,3 @@ The user wants to fix the link to individual posts and implement a "back to top"
         </div>
     </div>
 </div>
-<button id="back-to-top-btn" class="btn btn-primary" style="position: fixed; bottom: 20px; right: 20px; display: none;">
-    Voltar ao Topo
-</button>
-
-
-
-
-@section Scripts {
-    <script>
-        // Back to top button functionality
-        $(document).ready(function () {
-            $(window).scroll(function () {
-                if ($(this).scrollTop() > 100) {
-                    $('#back-to-top-btn').fadeIn();
-                } else {
-                    $('#back-to-top-btn').fadeOut();
-                }
-            });
-
-            $('#back-to-top-btn').click(function () {
-                $('html, body').animate({ scrollTop: 0 }, 'slow');
-                return false;
-            });
-        });
-    </script>
-}
-```

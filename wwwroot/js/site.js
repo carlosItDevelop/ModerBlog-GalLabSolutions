@@ -1,67 +1,40 @@
 
-// Wait for DOM to be ready
+// Main site JavaScript functionality
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Back to top button functionality
-    var backToTopButton = document.getElementById('backToTop');
-
-    // Show/hide button based on scroll position
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 100) {
-            backToTopButton.classList.add('show');
-        } else {
-            backToTopButton.classList.remove('show');
-        }
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Smooth scroll to top
-    backToTopButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    // Initialize popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Initialize lazy loading for images
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    img.classList.remove('lazy');
-                    img.classList.add('loaded');
-                    imageObserver.unobserve(img);
-                }
-            });
-        });
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
 
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
-
-    // Add loading state to buttons
-    document.querySelectorAll('.btn[type="submit"]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            if (!btn.classList.contains('loading')) {
-                btn.classList.add('loading');
-                // Remove loading state after form submission
-                setTimeout(() => {
-                    btn.classList.remove('loading');
-                }, 3000);
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
-    });
-
-    // Auto-hide alerts
-    document.querySelectorAll('.alert').forEach(function(alert) {
-        setTimeout(function() {
-            alert.style.opacity = '0';
-            setTimeout(function() {
-                alert.style.display = 'none';
-            }, 300);
-        }, 5000);
     });
 
     // Form validation enhancement
@@ -76,6 +49,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Loading state for buttons
+    document.querySelectorAll('button[type="submit"]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const form = this.closest('form');
+            if (form && form.checkValidity()) {
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                // Re-enable after 3 seconds as fallback
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                    this.disabled = false;
+                }, 3000);
+            }
+        });
+    });
+
+    // Image lazy loading
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(function(img) {
+            imageObserver.observe(img);
+        });
+    }
+
     // Search functionality (if search input exists)
     const searchInput = document.querySelector('#search-input');
     if (searchInput) {
@@ -86,6 +94,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Implement search functionality here
                 console.log('Searching for:', searchInput.value);
             }, 300);
+        });
+    }
+
+    // Back to top button
+    const backToTopButton = document.querySelector('#back-to-top');
+    if (backToTopButton) {
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     }
 });
@@ -116,43 +143,18 @@ function showAlert(message, type = 'info') {
 
     // Auto-hide after 5 seconds
     setTimeout(function() {
-        if (alertElement.parentNode) {
-            alertElement.remove();
-        }
+        const bsAlert = new bootstrap.Alert(alertElement);
+        bsAlert.close();
     }, 5000);
 }
 
-// Function to copy text to clipboard
 function copyToClipboard(text) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-            showAlert('Texto copiado para a área de transferência!', 'success');
-        });
-    } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
+    navigator.clipboard.writeText(text).then(function() {
         showAlert('Texto copiado para a área de transferência!', 'success');
-    }
-}
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            e.preventDefault();
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+    }).catch(function() {
+        showAlert('Erro ao copiar texto.', 'danger');
     });
-});
+}
 
 // AJAX helper function
 async function makeRequest(url, options = {}) {
@@ -167,7 +169,7 @@ async function makeRequest(url, options = {}) {
 
     try {
         const response = await fetch(url, mergedOptions);
-
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
