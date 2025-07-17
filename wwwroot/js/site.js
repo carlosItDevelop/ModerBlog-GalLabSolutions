@@ -1,7 +1,28 @@
-
 // Main site JavaScript functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Botão Voltar ao Topo
+    const backToTopButton = document.getElementById('backToTop');
+
+    if (backToTopButton) {
+        // Mostrar/ocultar botão baseado no scroll
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+
+        // Ação do clique
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -56,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (form && form.checkValidity()) {
                 this.classList.add('loading');
                 this.disabled = true;
-                
+
                 // Re-enable after 3 seconds as fallback
                 setTimeout(() => {
                     this.classList.remove('loading');
@@ -98,17 +119,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Back to top button
-    const backToTopButton = document.querySelector('#back-to-top');
-    if (backToTopButton) {
+    const backToTopButtonOriginal = document.querySelector('#back-to-top');
+    if (backToTopButtonOriginal) {
         window.addEventListener('scroll', function() {
             if (window.pageYOffset > 300) {
-                backToTopButton.style.display = 'block';
+                backToTopButtonOriginal.style.display = 'block';
             } else {
-                backToTopButton.style.display = 'none';
+                backToTopButtonOriginal.style.display = 'none';
             }
         });
 
-        backToTopButton.addEventListener('click', function() {
+        backToTopButtonOriginal.addEventListener('click', function() {
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
@@ -169,7 +190,7 @@ async function makeRequest(url, options = {}) {
 
     try {
         const response = await fetch(url, mergedOptions);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
