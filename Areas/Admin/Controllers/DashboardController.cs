@@ -1,28 +1,42 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ModernBlog.Services;
 
-namespace ModernBlog.Areas.Admin.Controllers;
-
-[Area("Admin")]
-[Authorize]
-public class DashboardController : Controller
+namespace ModernBlog.Areas.Admin.Controllers
 {
-    private readonly IPostService _postService;
-
-    public DashboardController(IPostService postService)
+    [Area("Admin")]
+    [Authorize(Roles = "Admin")]
+    public class DashboardController : Controller
     {
-        _postService = postService;
-    }
+        private readonly IPostService _postService;
 
-    public async Task<IActionResult> Index()
-    {
-        var recentPosts = await _postService.GetAllPostsAsync(1, 10);
-        var totalPosts = await _postService.GetTotalPostsCountAsync();
+        public DashboardController(IPostService postService)
+        {
+            _postService = postService;
+        }
 
-        ViewBag.TotalPosts = totalPosts;
-        ViewBag.RecentPosts = recentPosts;
+        public async Task<IActionResult> Index()
+        {
+            // Verificar se o usuário está autenticado e é admin
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                return Challenge(); // Redireciona para login
+            }
 
-        return View();
+            if (!User.IsInRole("Admin"))
+            {
+                return Forbid(); // Acesso negado
+            }
+
+            var totalPosts = await _postService.GetTotalPostsAsync();
+            var publishedPosts = await _postService.GetPublishedPostsCountAsync();
+            var recentPosts = await _postService.GetRecentPostsAsync(5);
+
+            ViewBag.TotalPosts = totalPosts;
+            ViewBag.PublishedPosts = publishedPosts;
+            ViewBag.RecentPosts = recentPosts;
+
+            return View();
+        }
     }
 }
