@@ -102,13 +102,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backToTopButton) {
         window.addEventListener('scroll', function() {
             if (window.pageYOffset > 300) {
-                backToTopButton.style.display = 'block';
+                backToTopButton.classList.remove('d-none');
+                backToTopButton.classList.add('show');
             } else {
-                backToTopButton.style.display = 'none';
+                backToTopButton.classList.add('d-none');
+                backToTopButton.classList.remove('show');
             }
         });
 
-        backToTopButton.addEventListener('click', function() {
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
