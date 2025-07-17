@@ -7,6 +7,34 @@ namespace ModernBlog.Data;
 
 public static class SeedData
 {
+    public static async Task ResetDatabaseAsync(IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Delete all data in correct order (respecting foreign key constraints)
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"PostLikes\"");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"PostTags\"");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"Comments\"");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"Posts\"");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"Categories\"");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM \"Tags\"");
+        
+        // Reset identity sequences if they exist
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync("ALTER SEQUENCE \"Posts_Id_seq\" RESTART WITH 1");
+            await context.Database.ExecuteSqlRawAsync("ALTER SEQUENCE \"Categories_Id_seq\" RESTART WITH 1");
+            await context.Database.ExecuteSqlRawAsync("ALTER SEQUENCE \"Tags_Id_seq\" RESTART WITH 1");
+            await context.Database.ExecuteSqlRawAsync("ALTER SEQUENCE \"Comments_Id_seq\" RESTART WITH 1");
+        }
+        catch
+        {
+            // Ignore if sequences don't exist
+        }
+
+        await context.SaveChangesAsync();
+    }
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -84,11 +112,11 @@ public static class SeedData
         }
 
         // Add more sample posts
-        var categories = await context.Categories.ToListAsync();
-        var techCategory = categories.First(c => c.Name == "Tecnologia");
-        var lifestyleCategory = categories.First(c => c.Name == "Lifestyle");
-        var businessCategory = categories.First(c => c.Name == "Negócios");
-        var educationCategory = categories.First(c => c.Name == "Educação");
+        var allCategories = await context.Categories.ToListAsync();
+        var techCategory = allCategories.First(c => c.Name == "Tecnologia");
+        var lifestyleCategory = allCategories.First(c => c.Name == "Lifestyle");
+        var businessCategory = allCategories.First(c => c.Name == "Negócios");
+        var educationCategory = allCategories.First(c => c.Name == "Educação");
 
         // Check if we need to add more posts (add if less than 10 posts exist)
         var currentPostCount = await context.Posts.CountAsync();

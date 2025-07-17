@@ -95,6 +95,10 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    
+    // Uncomment the line below to reset database (clear all data)
+    // await SeedData.ResetDatabaseAsync(services);
+    
     await SeedData.InitializeAsync(services);
 }
 
