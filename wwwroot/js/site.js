@@ -1,23 +1,25 @@
+
 // Wait for DOM to be ready
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Back to top button functionality
-    var backToTopButton = $('#backToTop');
+    var backToTopButton = document.getElementById('backToTop');
 
     // Show/hide button based on scroll position
-    $(window).scroll(function() {
-        if ($(this).scrollTop() > 100) {
-            backToTopButton.addClass('show');
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 100) {
+            backToTopButton.classList.add('show');
         } else {
-            backToTopButton.removeClass('show');
+            backToTopButton.classList.remove('show');
         }
     });
 
     // Smooth scroll to top
-    backToTopButton.click(function(e) {
+    backToTopButton.addEventListener('click', function(e) {
         e.preventDefault();
-        $('html, body').animate({
-            scrollTop: 0
-        }, 300);
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     });
 
     // Initialize lazy loading for images
@@ -40,26 +42,29 @@ $(document).ready(function() {
     }
 
     // Add loading state to buttons
-    $('.btn[type="submit"]').click(function() {
-        var $btn = $(this);
-        if (!$btn.hasClass('loading')) {
-            $btn.addClass('loading');
-            // Remove loading state after form submission
-            setTimeout(() => {
-                $btn.removeClass('loading');
-            }, 3000);
-        }
+    document.querySelectorAll('.btn[type="submit"]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (!btn.classList.contains('loading')) {
+                btn.classList.add('loading');
+                // Remove loading state after form submission
+                setTimeout(() => {
+                    btn.classList.remove('loading');
+                }, 3000);
+            }
+        });
     });
 
     // Auto-hide alerts
-    $('.alert').each(function() {
-        var $alert = $(this);
+    document.querySelectorAll('.alert').forEach(function(alert) {
         setTimeout(function() {
-            $alert.fadeOut();
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.style.display = 'none';
+            }, 300);
         }, 5000);
     });
 
-	// Form validation enhancement
+    // Form validation enhancement
     const forms = document.querySelectorAll('.needs-validation');
     forms.forEach(function(form) {
         form.addEventListener('submit', function(event) {
@@ -71,7 +76,7 @@ $(document).ready(function() {
         });
     });
 
-     // Search functionality (if search input exists)
+    // Search functionality (if search input exists)
     const searchInput = document.querySelector('#search-input');
     if (searchInput) {
         let searchTimeout;
