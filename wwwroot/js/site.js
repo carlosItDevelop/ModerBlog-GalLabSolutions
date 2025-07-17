@@ -1,64 +1,65 @@
-// Main site JavaScript functionality
+// Wait for DOM to be ready
+$(document).ready(function() {
+    // Back to top button functionality
+    var backToTopButton = $('#backToTop');
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Botão Voltar ao Topo
-    const backToTopButton = document.getElementById('backToTop');
+    // Show/hide button based on scroll position
+    $(window).scroll(function() {
+        if ($(this).scrollTop() > 100) {
+            backToTopButton.addClass('show');
+        } else {
+            backToTopButton.removeClass('show');
+        }
+    });
 
-    if (backToTopButton) {
-        // Mostrar/ocultar botão baseado no scroll
-        window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) {
-                backToTopButton.classList.add('show');
-            } else {
-                backToTopButton.classList.remove('show');
-            }
-        });
+    // Smooth scroll to top
+    backToTopButton.click(function(e) {
+        e.preventDefault();
+        $('html, body').animate({
+            scrollTop: 0
+        }, 300);
+    });
 
-        // Ação do clique
-        backToTopButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
+    // Initialize lazy loading for images
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    img.classList.add('loaded');
+                    imageObserver.unobserve(img);
+                }
             });
         });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
     }
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+
+    // Add loading state to buttons
+    $('.btn[type="submit"]').click(function() {
+        var $btn = $(this);
+        if (!$btn.hasClass('loading')) {
+            $btn.addClass('loading');
+            // Remove loading state after form submission
+            setTimeout(() => {
+                $btn.removeClass('loading');
+            }, 3000);
+        }
     });
 
-    // Initialize popovers
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
-
-    // Auto-hide alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
-    alerts.forEach(function(alert) {
+    // Auto-hide alerts
+    $('.alert').each(function() {
+        var $alert = $(this);
         setTimeout(function() {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            $alert.fadeOut();
         }, 5000);
     });
 
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Form validation enhancement
+	// Form validation enhancement
     const forms = document.querySelectorAll('.needs-validation');
     forms.forEach(function(form) {
         form.addEventListener('submit', function(event) {
@@ -70,42 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Loading state for buttons
-    document.querySelectorAll('button[type="submit"]').forEach(function(button) {
-        button.addEventListener('click', function() {
-            const form = this.closest('form');
-            if (form && form.checkValidity()) {
-                this.classList.add('loading');
-                this.disabled = true;
-
-                // Re-enable after 3 seconds as fallback
-                setTimeout(() => {
-                    this.classList.remove('loading');
-                    this.disabled = false;
-                }, 3000);
-            }
-        });
-    });
-
-    // Image lazy loading
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(function(entry) {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    img.classList.remove('lazy');
-                    imageObserver.unobserve(img);
-                }
-            });
-        });
-
-        document.querySelectorAll('img[data-src]').forEach(function(img) {
-            imageObserver.observe(img);
-        });
-    }
-
-    // Search functionality (if search input exists)
+     // Search functionality (if search input exists)
     const searchInput = document.querySelector('#search-input');
     if (searchInput) {
         let searchTimeout;
@@ -115,25 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Implement search functionality here
                 console.log('Searching for:', searchInput.value);
             }, 300);
-        });
-    }
-
-    // Back to top button
-    const backToTopButtonOriginal = document.querySelector('#back-to-top');
-    if (backToTopButtonOriginal) {
-        window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) {
-                backToTopButtonOriginal.style.display = 'block';
-            } else {
-                backToTopButtonOriginal.style.display = 'none';
-            }
-        });
-
-        backToTopButtonOriginal.addEventListener('click', function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
         });
     }
 });
@@ -164,18 +111,43 @@ function showAlert(message, type = 'info') {
 
     // Auto-hide after 5 seconds
     setTimeout(function() {
-        const bsAlert = new bootstrap.Alert(alertElement);
-        bsAlert.close();
+        if (alertElement.parentNode) {
+            alertElement.remove();
+        }
     }, 5000);
 }
 
+// Function to copy text to clipboard
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showAlert('Texto copiado para a área de transferência!', 'success');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
         showAlert('Texto copiado para a área de transferência!', 'success');
-    }).catch(function() {
-        showAlert('Erro ao copiar texto.', 'danger');
-    });
+    }
 }
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            e.preventDefault();
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
 
 // AJAX helper function
 async function makeRequest(url, options = {}) {
