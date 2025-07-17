@@ -34,7 +34,7 @@ namespace ModernBlog.Areas.Admin.Controllers
 
             ViewBag.TotalPosts = totalPosts;
             ViewBag.PublishedPosts = publishedPosts;
-            ViewBag.RecentPosts = recentPosts;
+            ViewBag.RecentPosts = recentPosts.ToList();
 
             return View();
         }

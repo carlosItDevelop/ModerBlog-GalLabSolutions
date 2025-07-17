@@ -186,6 +186,16 @@ public class PostService : IPostService
         return await _context.Posts.CountAsync(p => p.IsPublished);
     }
 
+    public async Task<int> GetTotalPostsAsync()
+    {
+        return await _context.Posts.CountAsync();
+    }
+
+    public async Task<int> GetPublishedPostsCountAsync()
+    {
+        return await _context.Posts.CountAsync(p => p.IsPublished);
+    }
+
     public async Task<IEnumerable<Post>> GetAllPostsAsync(int page = 1, int pageSize = 10)
     {
         return await _context.Posts

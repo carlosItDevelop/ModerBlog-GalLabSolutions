@@ -37,7 +37,7 @@ namespace ModernBlog.Areas.Identity.Pages.Account
         public string ReturnUrl { get; set; } = string.Empty;
 
         [TempData]
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
 
         public class InputModel
         {

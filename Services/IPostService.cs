@@ -20,5 +20,7 @@ public interface IPostService
     Task IncrementViewCountAsync(Guid postId);
     Task<bool> ToggleLikeAsync(Guid postId, Guid userId);
     Task<int> GetTotalPostsCountAsync();
+    Task<int> GetTotalPostsAsync();
+    Task<int> GetPublishedPostsCountAsync();
     Task<IEnumerable<Post>> GetAllPostsAsync(int page = 1, int pageSize = 10);
 }
