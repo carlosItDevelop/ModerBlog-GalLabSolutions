@@ -221,6 +221,19 @@ footer a:hover {
     transition: color 0.3s ease;
 }
 
+/* Override text-muted in footer to ensure good contrast */
+footer .text-muted {
+    color: #dee2e6 !important;
+}
+
+footer .text-muted a {
+    color: #fff !important;
+}
+
+footer .text-muted a:hover {
+    color: var(--primary-color) !important;
+}
+
 .hover-primary:hover {
     color: var(--primary-color) !important;
     transition: color 0.3s ease;
