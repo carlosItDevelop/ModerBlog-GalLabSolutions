@@ -159,6 +159,23 @@ public class PostService : IPostService
         }
     }
 
+    public async Task<Post> UpdatePostAsync(Post post)
+    {
+        _context.Posts.Update(post);
+        await _context.SaveChangesAsync();
+        return post;
+    }
+
+    public async Task DeletePostAsync(Guid id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post != null)
+        {
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<bool> ToggleLikeAsync(Guid postId, Guid userId)
     {
         var existingLike = await _context.PostLikes

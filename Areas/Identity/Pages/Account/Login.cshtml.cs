@@ -87,10 +87,16 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                     var user = await _userManager.FindByEmailAsync(Input.Email);
                     if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     {
-                        return Redirect("/Admin");
+                        return Redirect("/Admin/Dashboard");
                     }
                     
-                    return LocalRedirect(returnUrl);
+                    // Se não é admin, usar o returnUrl ou ir para home
+                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/" && returnUrl != "~/")
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
+                    
+                    return Redirect("/");
                 }
                 if (result.IsLockedOut)
                 {

@@ -94,7 +94,12 @@ namespace ModernBlog.Areas.Identity.Pages.Account
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     
-                    // Redirecionar para a página inicial após registro
+                    // Usar returnUrl se válido, senão ir para home
+                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/" && returnUrl != "~/")
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
+                    
                     return Redirect("/");
                 }
                 foreach (var error in result.Errors)

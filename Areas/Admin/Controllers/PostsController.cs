@@ -153,4 +153,27 @@ public class PostsController : Controller
         ViewBag.Categories = new SelectList(categories, "Id", "Name");
         ViewBag.Tags = new SelectList(tags, "Id", "Name");
     }
+
+    private string GenerateSlug(string title)
+    {
+        // Remove diacritics
+        string normalizedString = title.Normalize(System.Text.NormalizationForm.FormD);
+        System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+
+        foreach (char c in normalizedString)
+        {
+            System.Globalization.UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        // Remove accents and replace spaces with hyphens
+        string str = stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).ToLower();
+        str = System.Text.RegularExpressions.Regex.Replace(str, @"[^a-z0-9\s-]", "");
+        str = System.Text.RegularExpressions.Regex.Replace(str, @"\s+", "-").Trim();
+        str = System.Text.RegularExpressions.Regex.Replace(str, @"-+", "-");
+        return str;
+    }
 }

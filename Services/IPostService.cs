@@ -1,4 +1,3 @@
-
 using ModernBlog.Models;
 
 namespace ModernBlog.Services;
@@ -15,6 +14,8 @@ public interface IPostService
     Task<IEnumerable<Category>> GetCategoriesAsync();
     Task<IEnumerable<Tag>> GetTagsAsync();
     Task<Post> CreatePostAsync(Post post);
+    Task<Post?> GetPostByIdAsync(Guid id);
+    Task<Post?> GetPostBySlugAsync(string slug);
     Task<Post> UpdatePostAsync(Post post);
     Task DeletePostAsync(Guid id);
     Task IncrementViewCountAsync(Guid postId);
