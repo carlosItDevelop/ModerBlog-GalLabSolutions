@@ -72,67 +72,126 @@ namespace ModernBlog.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            _logger.LogInformation("🔍 LOGIN: Iniciando processo de login");
-            _logger.LogInformation($"📧 LOGIN: Email recebido: {Input.Email}");
-            _logger.LogInformation($"🔙 LOGIN: ReturnUrl: {returnUrl}");
-            
-            returnUrl ??= Url.Content("~/");
+            try
+            {
+                _logger.LogInformation("🔍 LOGIN: Iniciando processo de login");
+                _logger.LogInformation($"📧 LOGIN: Email recebido: {Input.Email}");
+                _logger.LogInformation($"🔙 LOGIN: ReturnUrl: {returnUrl}");
+                
+                returnUrl ??= Url.Content("~/");
 
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-        
-            _logger.LogInformation($"✅ LOGIN: ModelState.IsValid: {ModelState.IsValid}");
-            if (!ModelState.IsValid)
-            {
-                foreach (var error in ModelState)
-                {
-                    _logger.LogError($"❌ LOGIN: ModelState Error - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
-                }
-            }
+                ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             
-            if (ModelState.IsValid)
-            {
+                _logger.LogInformation($"✅ LOGIN: ModelState.IsValid: {ModelState.IsValid}");
+                if (!ModelState.IsValid)
+                {
+                    foreach (var error in ModelState)
+                    {
+                        _logger.LogError($"❌ LOGIN: ModelState Error - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
+                    _logger.LogError("❌ LOGIN: Retornando página devido a ModelState inválido");
+                    return Page();
+                }
+                
                 _logger.LogInformation($"🔐 LOGIN: Tentando fazer login com {Input.Email}");
                 
-                // Verificar se o usuário existe
-                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
-                _logger.LogInformation($"👤 LOGIN: Usuário encontrado: {existingUser?.Email ?? "NÃO ENCONTRADO"}");
+                // Verificar se o usuário existe ANTES de tentar login
+                ApplicationUser? existingUser = null;
+                try
+                {
+                    existingUser = await _userManager.FindByEmailAsync(Input.Email);
+                    _logger.LogInformation($"👤 LOGIN: Usuário encontrado: {existingUser?.Email ?? "NÃO ENCONTRADO"}");
+                    
+                    if (existingUser != null)
+                    {
+                        _logger.LogInformation($"📋 LOGIN: Detalhes do usuário - ID: {existingUser.Id}, EmailConfirmed: {existingUser.EmailConfirmed}");
+                        
+                        // Verificar se a senha está correta ANTES do SignIn
+                        var passwordCheck = await _userManager.CheckPasswordAsync(existingUser, Input.Password);
+                        _logger.LogInformation($"🔑 LOGIN: Verificação de senha: {passwordCheck}");
+                        
+                        // Verificar roles do usuário
+                        var userRoles = await _userManager.GetRolesAsync(existingUser);
+                        _logger.LogInformation($"🏷️ LOGIN: Roles do usuário: {string.Join(", ", userRoles)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"❌ LOGIN: Erro ao buscar usuário: {ex.Message}");
+                    ModelState.AddModelError(string.Empty, "Erro interno do servidor. Tente novamente.");
+                    return Page();
+                }
                 
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                if (existingUser == null)
+                {
+                    _logger.LogWarning("⚠️ LOGIN: Usuário não encontrado");
+                    ModelState.AddModelError(string.Empty, "Email ou senha inválidos.");
+                    return Page();
+                }
                 
-                _logger.LogInformation($"🎯 LOGIN: Resultado - Succeeded: {result.Succeeded}, RequiresTwoFactor: {result.RequiresTwoFactor}, IsLockedOut: {result.IsLockedOut}, IsNotAllowed: {result.IsNotAllowed}");
+                // Tentar fazer login
+                Microsoft.AspNetCore.Identity.SignInResult result;
+                try
+                {
+                    _logger.LogInformation("🚀 LOGIN: Executando PasswordSignInAsync...");
+                    result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                    _logger.LogInformation($"🎯 LOGIN: Resultado - Succeeded: {result.Succeeded}, RequiresTwoFactor: {result.RequiresTwoFactor}, IsLockedOut: {result.IsLockedOut}, IsNotAllowed: {result.IsNotAllowed}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"❌ LOGIN: Erro durante SignIn: {ex.Message}");
+                    _logger.LogError($"❌ LOGIN: Stack trace: {ex.StackTrace}");
+                    ModelState.AddModelError(string.Empty, "Erro interno durante login. Tente novamente.");
+                    return Page();
+                }
                 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("✅ LOGIN: Login realizado com sucesso!");
                     
-                    // Debug: Log do usuário que fez login
-                    var user = await _userManager.FindByEmailAsync(Input.Email);
-                    _logger.LogInformation($"👤 LOGIN: Usuário logado: {user?.Email} (ID: {user?.Id})");
-                    
                     // Verificar se é admin e redirecionar para área administrativa
-                    if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                    if (await _userManager.IsInRoleAsync(existingUser, "Admin"))
                     {
                         _logger.LogInformation("🔑 LOGIN: Admin detectado, redirecionando para dashboard");
-                        return Redirect("/Admin/Dashboard");
+                        return LocalRedirect(returnUrl.Contains("/Admin") ? returnUrl : "/Admin/Dashboard");
                     }
                     
-                    // Se não é admin, ir para home
-                    _logger.LogInformation("🏠 LOGIN: Usuário regular, redirecionando para home");
-                    return Redirect("/");
+                    // Se não é admin, ir para home ou returnUrl
+                    _logger.LogInformation($"🏠 LOGIN: Usuário regular, redirecionando para: {returnUrl}");
+                    return LocalRedirect(returnUrl);
                 }
-                if (result.IsLockedOut)
+                else if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("User account locked out.");
+                    _logger.LogWarning("🔒 LOGIN: Conta bloqueada");
                     return RedirectToPage("./Lockout");
+                }
+                else if (result.IsNotAllowed)
+                {
+                    _logger.LogWarning("🚫 LOGIN: Login não permitido");
+                    ModelState.AddModelError(string.Empty, "Login não permitido. Confirme seu email.");
+                    return Page();
+                }
+                else if (result.RequiresTwoFactor)
+                {
+                    _logger.LogInformation("📱 LOGIN: Requer autenticação de dois fatores");
+                    // Implementar 2FA se necessário
+                    ModelState.AddModelError(string.Empty, "Autenticação de dois fatores necessária.");
+                    return Page();
                 }
                 else
                 {
+                    _logger.LogWarning("❌ LOGIN: Falha na autenticação");
                     ModelState.AddModelError(string.Empty, "Email ou senha inválidos.");
                     return Page();
                 }
             }
-
-            return Page();
+            catch (Exception ex)
+            {
+                _logger.LogError($"💥 LOGIN: Erro geral: {ex.Message}");
+                _logger.LogError($"💥 LOGIN: Stack trace: {ex.StackTrace}");
+                ModelState.AddModelError(string.Empty, "Erro interno do servidor. Tente novamente.");
+                return Page();
+            }
         }
     }
 }
