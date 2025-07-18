@@ -1,4 +1,3 @@
-
 // Main site JavaScript functionality
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (form && form.checkValidity()) {
                 this.classList.add('loading');
                 this.disabled = true;
-                
+
                 // Re-enable after 3 seconds as fallback
                 setTimeout(() => {
                     this.classList.remove('loading');
@@ -172,7 +171,7 @@ async function makeRequest(url, options = {}) {
 
     try {
         const response = await fetch(url, mergedOptions);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -197,3 +196,73 @@ window.BlogUtils = {
     copyToClipboard,
     makeRequest
 };
+
+// Site.js - ModernBlog JavaScript
+
+// Check if jQuery is loaded
+if (typeof jQuery !== 'undefined') {
+    console.log('✅ jQuery carregado com sucesso!');
+    console.log('🔍 Versão do jQuery:', jQuery.fn.jquery);
+} else {
+    console.error('❌ jQuery não foi carregado!');
+}
+
+// Use jQuery safely
+$(document).ready(function() {
+    // Track link clicks for debugging (only for valid hrefs)
+    $('a').on('click', function(e) {
+        const href = $(this).attr('href');
+        if (href && href !== '#' && href !== '') {
+            console.log('🔗 Link clicado:', href);
+        }
+    });
+
+    // Fix like button functionality
+    $('.like-btn').on('click', function(e) {
+        e.preventDefault();
+        const postId = $(this).data('post-id');
+
+        if (!postId) {
+            console.warn('Post ID não encontrado');
+            return;
+        }
+
+        // Only proceed if user is authenticated
+        if (!$(this).hasClass('authenticated')) {
+            window.location.href = '/Identity/Account/Login';
+            return;
+        }
+
+        // Make AJAX request to toggle like
+        $.ajax({
+            url: '/api/posts/' + postId + '/like',
+            method: 'POST',
+            success: function(response) {
+                // Update like count and button state
+                $('.like-count[data-post-id="' + postId + '"]').text(response.likeCount);
+                const button = $('.like-btn[data-post-id="' + postId + '"]');
+                button.toggleClass('liked', response.isLiked);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error toggling like:', error);
+            }
+        });
+    });
+
+    // Back to top button
+    const backToTopButton = $('#back-to-top');
+    if (backToTopButton.length) {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 300) {
+                backToTopButton.addClass('show');
+            } else {
+                backToTopButton.removeClass('show');
+            }
+        });
+
+        backToTopButton.on('click', function(e) {
+            e.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 600);
+        });
+    }
+});
