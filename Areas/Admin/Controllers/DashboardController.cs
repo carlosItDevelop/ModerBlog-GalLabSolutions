@@ -28,13 +28,26 @@ namespace ModernBlog.Areas.Admin.Controllers
                 return Forbid(); // Acesso negado
             }
 
-            var totalPosts = await _postService.GetTotalPostsAsync();
-            var publishedPosts = await _postService.GetPublishedPostsCountAsync();
-            var recentPosts = await _postService.GetRecentPostsAsync(5);
+            try
+            {
+                var totalPosts = await _postService.GetTotalPostsAsync();
+                var publishedPosts = await _postService.GetPublishedPostsCountAsync();
+                var recentPosts = await _postService.GetRecentPostsAsync(5);
 
-            ViewBag.TotalPosts = totalPosts;
-            ViewBag.PublishedPosts = publishedPosts;
-            ViewBag.RecentPosts = recentPosts.ToList();
+                ViewBag.TotalPosts = totalPosts;
+                ViewBag.PublishedPosts = publishedPosts;
+                ViewBag.RecentPosts = recentPosts.ToList();
+            }
+            catch (Exception ex)
+            {
+                // Em caso de erro, usar valores padrão
+                ViewBag.TotalPosts = 0;
+                ViewBag.PublishedPosts = 0;
+                ViewBag.RecentPosts = new List<ModernBlog.Models.Post>();
+                
+                // Log do erro (opcional)
+                Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
+            }
 
             return View();
         }
