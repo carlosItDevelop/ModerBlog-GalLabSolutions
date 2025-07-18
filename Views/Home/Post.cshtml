@@ -112,6 +112,21 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
+            <!-- Login Section -->
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="bi bi-person-circle"></i> Acesso</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Faça login para comentar nos posts e interagir com a comunidade.</p>
+                        <a href="@Url.Page("/Account/Login", new { area = "Identity" })" class="btn btn-primary btn-sm me-2">Entrar</a>
+                        <a href="@Url.Page("/Account/Register", new { area = "Identity" })" class="btn btn-outline-primary btn-sm">Registrar</a>
+                    </div>
+                </div>
+            }
+
             <!-- Related Posts -->
             @if (relatedPosts?.Any() == true)
             {
@@ -129,11 +144,64 @@
                                 }
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">
-                                        <a href="@Url.Action("Post", "Home", new { slug = relatedPost.Slug })" class="text-decoration-none">@relatedPost.Title</a>
+                                        <a href="/Home/Post?slug=@relatedPost.Slug" class="text-decoration-none">@relatedPost.Title</a>
                                     </h6>
                                     <small class="text-muted">@relatedPost.PublishedAt?.ToString("dd/MM/yyyy")</small>
                                 </div>
                             </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Recent Posts -->
+            @{
+                var recentPosts = ViewBag.RecentPosts as IEnumerable<ModernBlog.Models.Post>;
+            }
+            @if (recentPosts?.Any() == true)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="bi bi-clock"></i> Posts Recentes</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var post in recentPosts.Take(5))
+                        {
+                            <div class="d-flex mb-3">
+                                @if (!string.IsNullOrEmpty(post.FeaturedImageUrl))
+                                {
+                                    <img src="@post.FeaturedImageUrl" alt="@post.Title" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                }
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="/Home/Post?slug=@post.Slug" class="text-decoration-none">@post.Title</a>
+                                    </h6>
+                                    <small class="text-muted">@post.PublishedAt?.ToString("dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Categories -->
+            @{
+                var categories = ViewBag.Categories as IEnumerable<ModernBlog.Models.Category>;
+            }
+            @if (categories?.Any() == true)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="bi bi-folder"></i> Categorias</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var category in categories)
+                        {
+                            <a href="@Url.Action("Category", "Home", new { id = category.Id })" 
+                               class="badge me-2 mb-2 text-decoration-none" 
+                               style="background-color: @category.Color">
+                                @category.Name
+                            </a>
                         }
                     </div>
                 </div>

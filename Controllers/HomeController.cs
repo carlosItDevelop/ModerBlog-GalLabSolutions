@@ -53,6 +53,13 @@ public class HomeController : Controller
         var relatedPosts = await _postService.GetRelatedPostsAsync(post.Id, 3);
         ViewBag.RelatedPosts = relatedPosts;
 
+        // Get sidebar data
+        var recentPosts = await _postService.GetRecentPostsAsync(5);
+        var categories = await _postService.GetCategoriesAsync();
+        
+        ViewBag.RecentPosts = recentPosts;
+        ViewBag.Categories = categories;
+
         return View(post);
     }
 
