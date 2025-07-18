@@ -42,7 +42,7 @@ public class PostsController : Controller
         Console.WriteLine("🔄 Tentativa de criar post...");
         Console.WriteLine($"📝 Título: {post.Title}");
         Console.WriteLine($"📝 Categoria: {post.CategoryId}");
-        Console.WriteLine($"📝 Conteúdo (primeiros 100 chars): {post.Content?.Substring(0, Math.Min(100, post.Content.Length ?? 0))}");
+        Console.WriteLine($"📝 Conteúdo (primeiros 100 chars): {post.Content?.Substring(0, Math.Min(100, post.Content?.Length ?? 0))}");
         Console.WriteLine($"📝 ModelState válido: {ModelState.IsValid}");
 
         if (!ModelState.IsValid)
