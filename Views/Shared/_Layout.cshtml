@@ -132,11 +132,33 @@
         </div>
     </footer>
 
-    <!-- Bootstrap 5.3.2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery (necessário para Identity pages) -->
+    <!-- jQuery - Necessário antes do Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Scripts de Debug para investigação -->
+    <script>
+        // Log para verificar se jQuery carregou
+        $(document).ready(function() {
+            console.log('✅ jQuery carregado com sucesso!');
+            console.log('🔍 Versão do jQuery:', $.fn.jquery);
+        });
+
+        // Debug dos formulários de login/registro
+        $(document).on('submit', 'form', function(e) {
+            console.log('📝 Formulário enviado:', this);
+            console.log('🎯 Action do formulário:', $(this).attr('action'));
+            console.log('📊 Método do formulário:', $(this).attr('method'));
+            console.log('📋 Dados do formulário:', $(this).serialize());
+        });
+
+        // Debug de cliques em links
+        $(document).on('click', 'a', function(e) {
+            console.log('🔗 Link clicado:', $(this).attr('href'));
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

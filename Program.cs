@@ -107,6 +107,13 @@ using (var scope = app.Services.CreateScope())
     // await SeedData.ResetDatabaseAsync(services);
     
     await SeedData.InitializeAsync(services);
+    
+    // Teste de conexão com banco (apenas se args contém --check-users)
+    if (args.Contains("--check-users"))
+    {
+        await DatabaseTester.TestConnection(scope.ServiceProvider);
+        Environment.Exit(0);
+    }
 }
 
 app.Run("http://0.0.0.0:5000");

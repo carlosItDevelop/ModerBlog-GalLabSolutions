@@ -74,10 +74,35 @@ namespace ModernBlog.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
+            _logger.LogInformation("🔍 REGISTRO: Iniciando processo de registro");
+            _logger.LogInformation($"📧 REGISTRO: Email: {Input.Email}");
+            _logger.LogInformation($"👤 REGISTRO: Nome: {Input.FirstName} {Input.LastName}");
+            
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            
+            _logger.LogInformation($"✅ REGISTRO: ModelState.IsValid: {ModelState.IsValid}");
+            if (!ModelState.IsValid)
+            {
+                foreach (var error in ModelState)
+                {
+                    _logger.LogError($"❌ REGISTRO: ModelState Error - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+            
             if (ModelState.IsValid)
             {
+                _logger.LogInformation("👤 REGISTRO: Criando novo usuário...");
+                
+                // Verificar se usuário já existe
+                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+                if (existingUser != null)
+                {
+                    _logger.LogWarning($"⚠️ REGISTRO: Usuário {Input.Email} já existe!");
+                    ModelState.AddModelError(string.Empty, "Este email já está cadastrado.");
+                    return Page();
+                }
+                
                 var user = new ApplicationUser 
                 { 
                     UserName = Input.Email, 
@@ -87,15 +112,29 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                     CreatedAt = DateTime.UtcNow
                 };
                 
+                _logger.LogInformation($"🔐 REGISTRO: Criando usuário {user.Email} (ID: {user.Id})");
+                
                 var result = await _userManager.CreateAsync(user, Input.Password);
+                
+                _logger.LogInformation($"🎯 REGISTRO: Resultado - Succeeded: {result.Succeeded}");
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        _logger.LogError($"❌ REGISTRO: Erro - {error.Code}: {error.Description}");
+                    }
+                }
+                
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"User created a new account: {user.Email}");
+                    _logger.LogInformation($"✅ REGISTRO: Usuário criado com sucesso: {user.Email} (ID: {user.Id})");
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation($"User {user.Email} signed in automatically after registration");
+                    var signInResult = await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation($"🔐 REGISTRO: Login automático - Succeeded: {signInResult.Succeeded}");
+                    _logger.LogInformation($"👤 REGISTRO: Usuário {user.Email} logado automaticamente após registro");
                     
                     // Ir direto para home após registro
+                    _logger.LogInformation("🏠 REGISTRO: Redirecionando para home");
                     return Redirect("/");
                 }
                 foreach (var error in result.Errors)
