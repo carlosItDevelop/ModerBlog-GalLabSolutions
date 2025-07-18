@@ -83,19 +83,19 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User logged in.");
                     
-                    // Verificar se é admin e redirecionar para área administrativa
+                    // Debug: Log do usuário que fez login
                     var user = await _userManager.FindByEmailAsync(Input.Email);
+                    _logger.LogInformation($"User {user?.Email} logged in successfully");
+                    
+                    // Verificar se é admin e redirecionar para área administrativa
                     if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     {
+                        _logger.LogInformation("Admin user redirecting to dashboard");
                         return Redirect("/Admin/Dashboard");
                     }
                     
-                    // Se não é admin, usar o returnUrl ou ir para home
-                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/" && returnUrl != "~/")
-                    {
-                        return LocalRedirect(returnUrl);
-                    }
-                    
+                    // Se não é admin, ir para home
+                    _logger.LogInformation("Regular user redirecting to home");
                     return Redirect("/");
                 }
                 if (result.IsLockedOut)

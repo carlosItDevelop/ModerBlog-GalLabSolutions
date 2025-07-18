@@ -90,16 +90,12 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    _logger.LogInformation($"User created a new account: {user.Email}");
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation($"User {user.Email} signed in automatically after registration");
                     
-                    // Usar returnUrl se válido, senão ir para home
-                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/" && returnUrl != "~/")
-                    {
-                        return LocalRedirect(returnUrl);
-                    }
-                    
+                    // Ir direto para home após registro
                     return Redirect("/");
                 }
                 foreach (var error in result.Errors)

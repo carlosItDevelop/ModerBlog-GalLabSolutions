@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ModernBlog</title>
-    
+
     <!-- Bootstrap 5.3.2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -20,18 +19,18 @@
                 <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index" asp-area="">
                     <i class="bi bi-journal-text"></i> ModernBlog
                 </a>
-                
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index" asp-area="">Início</a>
                         </li>
                     </ul>
-                    
+
                     <ul class="navbar-nav">
                         <partial name="_LoginPartial" />
                     </ul>
@@ -48,7 +47,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-        
+
         @if (TempData["Error"] != null)
         {
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -56,7 +55,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-        
+
         @RenderBody()
     </main>
 
@@ -82,7 +81,7 @@
                         <a href="#" class="text-light hover-primary"><i class="bi bi-github fs-5"></i></a>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h6 class="fw-bold mb-3">Navegação</h6>
                     <ul class="list-unstyled">
@@ -92,7 +91,7 @@
                         <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Política de Privacidade</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h6 class="fw-bold mb-3">Categorias Populares</h6>
                     <ul class="list-unstyled">
@@ -102,7 +101,7 @@
                         <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-light">Educação</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h6 class="fw-bold mb-3">Newsletter</h6>
                     <p class="text-muted mb-3">Receba as últimas atualizações do blog</p>
@@ -115,9 +114,9 @@
                     <small class="text-muted">Não enviamos spam. Cancele a qualquer momento.</small>
                 </div>
             </div>
-            
+
             <hr class="border-secondary my-4">
-            
+
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <p class="text-muted mb-0">
@@ -135,9 +134,9 @@
 
     <!-- Bootstrap 5.3.2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
+    <!-- jQuery (necessário para Identity pages) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
