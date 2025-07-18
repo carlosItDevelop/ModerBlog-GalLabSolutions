@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ModernBlog.Models;
 using ModernBlog.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ModernBlog.Areas.Admin.Controllers;
 
@@ -82,19 +83,20 @@ public class PostsController : Controller
         return View(post);
     }
 
+    [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
         var post = await _postService.GetPostByIdAsync(id);
         if (post == null)
             return NotFound();
 
-        await PopulateDropdowns();
+        ViewBag.Categories = await _postService.GetCategoriesAsync();
         return View(post);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, Post post, IFormFile? featuredImage, List<Guid> selectedTags)
+    public async Task<IActionResult> Edit(Guid id, Post post, IFormFile? featuredImage)
     {
         if (id != post.Id)
             return NotFound();
@@ -103,29 +105,52 @@ public class PostsController : Controller
         {
             try
             {
+                // Get existing post to preserve certain fields
+                var existingPost = await _postService.GetPostByIdAsync(id);
+                if (existingPost == null)
+                    return NotFound();
+
+                // Update fields
+                existingPost.Title = post.Title;
+                existingPost.Content = post.Content;
+                existingPost.Summary = post.Summary;
+                existingPost.CategoryId = post.CategoryId;
+                existingPost.IsPublished = post.IsPublished;
+                existingPost.IsFeatured = post.IsFeatured;
+                existingPost.UpdatedAt = DateTime.UtcNow;
+
                 // Handle image upload
                 if (featuredImage != null && _imageService.ValidateImage(featuredImage))
                 {
                     // Delete old image if exists
-                    if (!string.IsNullOrEmpty(post.FeaturedImageUrl))
+                    if (!string.IsNullOrEmpty(existingPost.FeaturedImageUrl))
                     {
-                        await _imageService.DeleteImageAsync(post.FeaturedImageUrl);
+                        await _imageService.DeleteImageAsync(existingPost.FeaturedImageUrl);
                     }
 
-                    post.FeaturedImageUrl = await _imageService.SaveImageAsync(featuredImage, "posts");
+                    var imagePath = await _imageService.SaveImageAsync(featuredImage, "posts");
+                    existingPost.FeaturedImageUrl = imagePath;
                 }
 
-                await _postService.UpdatePostAsync(post);
-                TempData["Success"] = "Post updated successfully!";
+                // Update published date if publishing for first time
+                if (post.IsPublished && existingPost.PublishedAt == null)
+                {
+                    existingPost.PublishedAt = DateTime.UtcNow;
+                }
+
+                await _postService.UpdatePostAsync(existingPost);
+                TempData["Success"] = "Post atualizado com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                ModelState.AddModelError("", ex.Message);
+                if (!await PostExists(post.Id))
+                    return NotFound();
+                throw;
             }
         }
 
-        await PopulateDropdowns();
+        ViewBag.Categories = await _postService.GetCategoriesAsync();
         return View(post);
     }
 
@@ -175,5 +200,10 @@ public class PostsController : Controller
         str = System.Text.RegularExpressions.Regex.Replace(str, @"\s+", "-").Trim();
         str = System.Text.RegularExpressions.Regex.Replace(str, @"-+", "-");
         return str;
+    }
+
+    private async Task<bool> PostExists(Guid id)
+    {
+        return await _postService.GetPostByIdAsync(id) != null;
     }
 }
