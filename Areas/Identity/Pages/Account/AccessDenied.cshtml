@@ -1,0 +1,36 @@
+@page
+@model ModernBlog.Areas.Identity.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Acesso Negado";
+}
+
+@* <header>
+    <h1 class="text-danger">@ViewData["Title"]</h1>
+    <p class="text-muted">Você não tem acesso a este recurso.</p>
+</header> *@
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow-lg p-4 mb-5 bg-white rounded">
+                <div class="card-body">
+                    <h2 class="card-title text-danger mb-4">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                        <br> Acesso Negado!
+                    </h2>
+                    <p class="card-text lead text-dark">
+                        Parece que você não tem as permissões necessárias para visualizar esta página.
+                    </p>
+                    <p class="card-text text-dark">
+                        Se você acredita que isso é um erro, por favor, entre em contato com o administrador do sistema.
+                    </p>
+                    <hr>
+                    <a href="/" class="btn btn-primary mt-3">
+                        <i class="bi bi-house-door-fill"></i> Voltar para a Página Inicial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

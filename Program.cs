@@ -10,41 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Use PostgreSQL for development/Replit, easily changeable to SQL Server
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-    
-    if (!string.IsNullOrEmpty(connectionString))
-    {
-        // Parse and rebuild the connection string to ensure it's valid
-        try
-        {
-            var uriBuilder = new UriBuilder(connectionString);
-            
-            // Extract components
-            var host = uriBuilder.Host;
-            var port = uriBuilder.Port == -1 ? 5432 : uriBuilder.Port; // Default PostgreSQL port
-            var database = uriBuilder.Path.TrimStart('/');
-            var username = uriBuilder.UserName;
-            var password = uriBuilder.Password;
-            
-            // Build proper Npgsql connection string with pooling
-            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;CommandTimeout=30;Timeout=30;Pooling=true;MinPoolSize=1;MaxPoolSize=10;ConnectionIdleLifetime=300";
-        }
-        catch (Exception ex)
-        {
-            // Fallback to local configuration if parsing fails
-            Console.WriteLine($"Failed to parse DATABASE_URL: {ex.Message}");
-            connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
-        }
-    }
-    else
-    {
-        connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres;CommandTimeout=30;Timeout=30;Pooling=true;MinPoolSize=1;MaxPoolSize=10";
-    }
-        
-    options.UseNpgsql(connectionString);
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
 });
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => 
@@ -73,7 +40,11 @@ builder.Services.AddScoped<IImageService, ImageService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -116,4 +87,4 @@ using (var scope = app.Services.CreateScope())
     Console.WriteLine("✅ Dados de seed carregados!");
 }
 
-app.Run("http://0.0.0.0:5000");
+app.Run();

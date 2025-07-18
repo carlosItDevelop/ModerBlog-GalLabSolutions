@@ -85,8 +85,10 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                 _logger.LogInformation($"✅ LOGIN: ModelState.IsValid: {ModelState.IsValid}");
                 if (!ModelState.IsValid)
                 {
+                    Console.WriteLine("DEBUG: ModelState is NOT valid. Errors:");
                     foreach (var error in ModelState)
                     {
+                        Console.WriteLine($"- {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
                         _logger.LogError($"❌ LOGIN: ModelState Error - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
                     }
                     _logger.LogError("❌ LOGIN: Retornando página devido a ModelState inválido");
