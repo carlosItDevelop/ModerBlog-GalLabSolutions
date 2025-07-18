@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Login - ModernBlog</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        input[type="email"], input[type="password"] { width: 300px; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Sistema de Login - ModernBlog</h1>
+    
+    <div class="test-section">
+        <h2>📊 1. Teste de Conexão com Banco</h2>
+        <button class="btn" onclick="testDatabase()">Testar Banco de Dados</button>
+        <div id="database-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔐 2. Teste de Login Direto (admin@modernblog.com)</h2>
+        <button class="btn" onclick="testLoginDirect()">Testar Login Direto</button>
+        <div id="login-direct-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 3. Teste de Login Manual</h2>
+        <form id="manual-login-form">
+            <div>
+                <label>Email:</label><br>
+                <input type="email" id="email" value="admin@modernblog.com" required>
+            </div>
+            <div>
+                <label>Senha:</label><br>
+                <input type="password" id="password" value="Admin123!" required>
+            </div>
+            <br>
+            <button type="submit" class="btn">Testar Login Manual</button>
+        </form>
+        <div id="manual-login-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 4. Ir para Login Real</h2>
+        <a href="/Identity/Account/Login" class="btn">Página de Login Real</a>
+        <a href="/Admin/Dashboard" class="btn">Dashboard Admin</a>
+    </div>
+
+    <script>
+        async function testDatabase() {
+            const resultDiv = document.getElementById('database-result');
+            resultDiv.innerHTML = '<div class="info">Testando conexão...</div>';
+            
+            try {
+                const response = await fetch('/test/database');
+                const data = await response.json();
+                
+                if (data.databaseConnection === 'OK') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Banco de dados funcionando!</strong><br>
+                            Usuários: ${data.userCount}<br>
+                            Admin encontrado: ${data.adminUser ? 'Sim' : 'Não'}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Erro na conexão com banco</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        }
+
+        async function testLoginDirect() {
+            const resultDiv = document.getElementById('login-direct-result');
+            resultDiv.innerHTML = '<div class="info">Testando login...</div>';
+            
+            try {
+                const response = await fetch('/test/login-direct');
+                const data = await response.json();
+                
+                if (data.Success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Login realizado com sucesso!</strong><br>
+                            Usuário: ${data.User.Email}<br>
+                            Roles: ${data.Roles.join(', ')}<br>
+                            ${data.RedirectUrl ? `Redirecionamento: ${data.RedirectUrl}` : ''}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    
+                    // Se o login foi bem-sucedido, oferecer redirecionamento
+                    if (data.RedirectUrl) {
+                        setTimeout(() => {
+                            if (confirm('Login realizado com sucesso! Deseja ir para o Dashboard Admin?')) {
+                                window.location.href = data.RedirectUrl;
+                            }
+                        }, 2000);
+                    }
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ Falha no login</strong><br>
+                            Mensagem: ${data.Message || 'Erro desconhecido'}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        }
+
+        document.getElementById('manual-login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('manual-login-result');
+            
+            resultDiv.innerHTML = '<div class="info">Testando login manual...</div>';
+            
+            try {
+                const response = await fetch('/test/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.Success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Login manual realizado com sucesso!</strong><br>
+                            Usuário: ${data.User.Email}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ Falha no login manual</strong><br>
+                            Mensagem: ${data.Message || 'Erro desconhecido'}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        });
+
+        // Carregar teste do banco automaticamente
+        window.onload = function() {
+            testDatabase();
+        };
+    </script>
+</body>
+</html>

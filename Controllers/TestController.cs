@@ -83,6 +83,74 @@ public class TestController : Controller
                 return Json(new { Success = false, Message = "Usuário não encontrado" });
             }
             
+
+
+    [HttpGet("/test/login")]
+    public IActionResult TestLoginPage()
+    {
+        return View("TestLogin");
+    }
+
+    [HttpGet("/test/login-direct")]
+    public async Task<IActionResult> TestLoginDirect()
+    {
+        try
+        {
+            _logger.LogInformation("🧪 TEST: Teste direto de login via GET");
+            
+            var email = "admin@modernblog.com";
+            var password = "Admin123!";
+            
+            // Buscar usuário
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Json(new { Success = false, Message = "Usuário não encontrado" });
+            }
+            
+            // Verificar senha
+            var passwordValid = await _userManager.CheckPasswordAsync(user, password);
+            if (!passwordValid)
+            {
+                return Json(new { Success = false, Message = "Senha inválida" });
+            }
+            
+            // Obter roles
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            // Tentar fazer login
+            var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
+            
+            return Json(new
+            {
+                Success = result.Succeeded,
+                Message = result.Succeeded ? "Login realizado com sucesso!" : "Falha no login",
+                User = new
+                {
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.EmailConfirmed
+                },
+                Roles = roles,
+                SignInResult = new
+                {
+                    result.Succeeded,
+                    result.IsLockedOut,
+                    result.IsNotAllowed,
+                    result.RequiresTwoFactor
+                },
+                RedirectUrl = result.Succeeded ? "/Admin/Dashboard" : null
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"❌ TEST: Erro no teste direto de login: {ex.Message}");
+            return Json(new { Success = false, Error = ex.Message });
+        }
+    }
+
             // Verificar senha
             var passwordValid = await _userManager.CheckPasswordAsync(user, password);
             if (!passwordValid)
