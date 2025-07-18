@@ -103,12 +103,17 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     
+    // Forçar criação do banco e tabelas
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    await context.Database.EnsureCreatedAsync();
+    Console.WriteLine("✅ Banco de dados e tabelas criados/verificados!");
+    
     // Uncomment the line below to reset database (clear all data)
     // await SeedData.ResetDatabaseAsync(services);
     
     await SeedData.InitializeAsync(services);
     
-    // Teste de conexão com banco removido temporariamente
+    Console.WriteLine("✅ Dados de seed carregados!");
 }
 
 app.Run("http://0.0.0.0:5000");
