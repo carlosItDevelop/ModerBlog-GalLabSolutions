@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ModernBlog.Services;
+using ModernBlog.Models;
 
 namespace ModernBlog.Areas.Admin.Controllers
 {
