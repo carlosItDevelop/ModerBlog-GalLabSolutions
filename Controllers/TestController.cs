@@ -69,6 +69,12 @@ public class TestController : Controller
         }
     }
 
+    [HttpGet("/test/login")]
+    public IActionResult TestLoginPage()
+    {
+        return View("TestLogin");
+    }
+
     [HttpPost("/test/login")]
     public async Task<IActionResult> TestLogin(string email = "admin@modernblog.com", string password = "Admin123!")
     {
@@ -83,12 +89,45 @@ public class TestController : Controller
                 return Json(new { Success = false, Message = "Usuário não encontrado" });
             }
             
-
-
-    [HttpGet("/test/login")]
-    public IActionResult TestLoginPage()
-    {
-        return View("TestLogin");
+            // Verificar senha
+            var passwordValid = await _userManager.CheckPasswordAsync(user, password);
+            if (!passwordValid)
+            {
+                return Json(new { Success = false, Message = "Senha inválida" });
+            }
+            
+            // Obter roles
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            // Tentar fazer login
+            var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
+            
+            return Json(new
+            {
+                Success = result.Succeeded,
+                User = new
+                {
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.EmailConfirmed
+                },
+                Roles = roles,
+                SignInResult = new
+                {
+                    result.Succeeded,
+                    result.IsLockedOut,
+                    result.IsNotAllowed,
+                    result.RequiresTwoFactor
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"❌ TEST: Erro no teste de login: {ex.Message}");
+            return Json(new { Success = false, Error = ex.Message, StackTrace = ex.StackTrace });
+        }
     }
 
     [HttpGet("/test/login-direct")]
@@ -148,47 +187,6 @@ public class TestController : Controller
         {
             _logger.LogError($"❌ TEST: Erro no teste direto de login: {ex.Message}");
             return Json(new { Success = false, Error = ex.Message });
-        }
-    }
-
-            // Verificar senha
-            var passwordValid = await _userManager.CheckPasswordAsync(user, password);
-            if (!passwordValid)
-            {
-                return Json(new { Success = false, Message = "Senha inválida" });
-            }
-            
-            // Obter roles
-            var roles = await _userManager.GetRolesAsync(user);
-            
-            // Tentar fazer login
-            var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
-            
-            return Json(new
-            {
-                Success = result.Succeeded,
-                User = new
-                {
-                    user.Id,
-                    user.Email,
-                    user.FirstName,
-                    user.LastName,
-                    user.EmailConfirmed
-                },
-                Roles = roles,
-                SignInResult = new
-                {
-                    result.Succeeded,
-                    result.IsLockedOut,
-                    result.IsNotAllowed,
-                    result.RequiresTwoFactor
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"❌ TEST: Erro no teste de login: {ex.Message}");
-            return Json(new { Success = false, Error = ex.Message, StackTrace = ex.StackTrace });
         }
     }
 }
