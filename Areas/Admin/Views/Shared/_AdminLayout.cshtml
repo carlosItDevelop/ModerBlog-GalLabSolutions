@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand" href="@Url.Action("Index", "Home", new { area = "" })">
                 <i class="bi bi-journal-text"></i> ModernBlog
@@ -68,7 +68,7 @@
         </div>
     </nav>
 
-    <main class="container-fluid py-4">
+    <main class="container-fluid py-4" style="background-color: #f8f9fa; min-height: calc(100vh - 76px);">
         @if (TempData["Success"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
