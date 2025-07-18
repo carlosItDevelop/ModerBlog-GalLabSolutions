@@ -177,6 +177,85 @@ img.lazy.loaded {
     display: block !important;
 }
 
+/* Dashboard posts table improvements */
+.table-borderless td {
+    color: #212529 !important;
+    font-weight: 500;
+}
+
+.table-borderless .fw-bold {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+.table-borderless .text-muted {
+    color: #6c757d !important;
+    font-weight: 400 !important;
+}
+
+.table-borderless th {
+    color: #495057 !important;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Card header improvements */
+.card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+    font-weight: 600;
+}
+
+/* Footer text visibility improvements */
+.bg-dark .text-light {
+    color: #ffffff !important;
+}
+
+.bg-dark .text-muted {
+    color: #adb5bd !important;
+}
+
+.bg-dark .text-decoration-none {
+    color: #dee2e6 !important;
+}
+
+.bg-dark .text-decoration-none:hover,
+.bg-dark .hover-light:hover {
+    color: #ffffff !important;
+    transition: color 0.2s ease;
+}
+
+.bg-dark .hover-primary:hover {
+    color: var(--primary-color) !important;
+    transition: color 0.2s ease;
+}
+
+/* Specific footer text improvements */
+footer.bg-dark {
+    background-color: #212529 !important;
+}
+
+footer.bg-dark h5,
+footer.bg-dark h6 {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+footer.bg-dark p {
+    color: #adb5bd !important;
+}
+
+footer.bg-dark .form-control.bg-secondary {
+    background-color: #495057 !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+footer.bg-dark .form-control.bg-secondary::placeholder {
+    color: #adb5bd !important;
+}
+
 /* Dark mode support (optional) */
 @media (prefers-color-scheme: dark) {
     :root {
