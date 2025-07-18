@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ModernBlog.Data;
 using ModernBlog.Models;
+using Npgsql;
 
 namespace ModernBlog.Services;
 
@@ -12,6 +13,37 @@ public class PostService : IPostService
     public PostService(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, int maxRetries = 3)
+    {
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                return await operation();
+            }
+            catch (PostgresException ex) when (ex.SqlState == "57P01" && i < maxRetries - 1)
+            {
+                Console.WriteLine($"🔄 Conexão perdida (tentativa {i + 1}/{maxRetries}), reconectando...");
+                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, i))); // Exponential backoff
+                
+                // Force a new connection
+                await _context.Database.OpenConnectionAsync();
+                await _context.Database.CloseConnectionAsync();
+            }
+            catch (Exception ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "57P01" && i < maxRetries - 1)
+            {
+                Console.WriteLine($"🔄 Conexão perdida (tentativa {i + 1}/{maxRetries}), reconectando...");
+                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, i)));
+                
+                await _context.Database.OpenConnectionAsync();
+                await _context.Database.CloseConnectionAsync();
+            }
+        }
+        
+        // Last attempt without retry
+        return await operation();
     }
 
     public async Task<IEnumerable<Post>> GetPublishedPostsAsync(int page = 1, int pageSize = 6)
@@ -124,7 +156,7 @@ public class PostService : IPostService
 
     public async Task<Post> CreatePostAsync(Post post)
     {
-        try
+        return await ExecuteWithRetryAsync(async () =>
         {
             Console.WriteLine("💾 Iniciando criação do post...");
             
@@ -142,18 +174,12 @@ public class PostService : IPostService
             
             Console.WriteLine($"✅ Post criado com sucesso! ID: {post.Id}");
             return post;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Erro ao criar post: {ex.Message}");
-            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-            throw;
-        }
+        });
     }
 
     public async Task<Post> UpdatePostAsync(Post post)
     {
-        try
+        return await ExecuteWithRetryAsync(async () =>
         {
             Console.WriteLine($"🔄 Atualizando post ID: {post.Id}");
             
@@ -168,12 +194,7 @@ public class PostService : IPostService
             
             Console.WriteLine("✅ Post atualizado com sucesso!");
             return post;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Erro ao atualizar post: {ex.Message}");
-            throw;
-        }
+        });
     }
 
     public async Task DeletePostAsync(Guid id)
@@ -225,12 +246,18 @@ public class PostService : IPostService
 
     public async Task<int> GetTotalPostsAsync()
     {
-        return await _context.Posts.CountAsync();
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            return await _context.Posts.CountAsync();
+        });
     }
 
     public async Task<int> GetPublishedPostsCountAsync()
     {
-        return await _context.Posts.CountAsync(p => p.IsPublished);
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            return await _context.Posts.CountAsync(p => p.IsPublished);
+        });
     }
 
     public async Task<IEnumerable<Post>> GetAllPostsAsync(int page = 1, int pageSize = 10)

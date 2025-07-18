@@ -27,8 +27,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             var username = uriBuilder.UserName;
             var password = uriBuilder.Password;
             
-            // Build proper Npgsql connection string
-            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;CommandTimeout=30;Timeout=30";
+            // Build proper Npgsql connection string with pooling
+            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;CommandTimeout=30;Timeout=30;Pooling=true;MinPoolSize=1;MaxPoolSize=10;ConnectionIdleLifetime=300";
         }
         catch (Exception ex)
         {
@@ -41,7 +41,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     else
     {
         connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres;CommandTimeout=30;Timeout=30";
+            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres;CommandTimeout=30;Timeout=30;Pooling=true;MinPoolSize=1;MaxPoolSize=10";
     }
         
     options.UseNpgsql(connectionString);

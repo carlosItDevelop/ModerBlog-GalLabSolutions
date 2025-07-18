@@ -30,26 +30,37 @@ namespace ModernBlog.Areas.Admin.Controllers
 
             try
             {
-                var totalPosts = await _postService.GetTotalPostsAsync();
-                var publishedPosts = await _postService.GetPublishedPostsCountAsync();
-                var recentPosts = await _postService.GetRecentPostsAsync(5);
+                // Add retry delay for dashboard loads
+                await Task.Delay(100); // Small delay to ensure connection is ready
 
-                ViewBag.TotalPosts = totalPosts;
-                ViewBag.PublishedPosts = publishedPosts;
-                ViewBag.RecentPosts = recentPosts.ToList();
+                ViewBag.TotalPosts = await _postService.GetTotalPostsAsync();
+                ViewBag.PublishedPosts = await _postService.GetPublishedPostsCountAsync();
+                ViewBag.RecentPosts = await _postService.GetRecentPostsAsync();
+                return View();
             }
             catch (Exception ex)
             {
-                // Em caso de erro, usar valores padrão
-                ViewBag.TotalPosts = 0;
-                ViewBag.PublishedPosts = 0;
-                ViewBag.RecentPosts = new List<ModernBlog.Models.Post>();
-                
-                // Log do erro (opcional)
-                Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
-            }
+                Console.WriteLine($"⚠️ Erro ao carregar dashboard: {ex.Message}");
 
-            return View();
+                // Wait and try one more time
+                try
+                {
+                    await Task.Delay(1000);
+                    ViewBag.TotalPosts = await _postService.GetTotalPostsAsync();
+                    ViewBag.PublishedPosts = await _postService.GetPublishedPostsCountAsync();
+                    ViewBag.RecentPosts = await _postService.GetRecentPostsAsync();
+                    return View();
+                }
+                catch
+                {
+                    // Final fallback data
+                    ViewBag.TotalPosts = 0;
+                    ViewBag.PublishedPosts = 0;
+                    ViewBag.RecentPosts = new List<Post>();
+                    TempData["Warning"] = "Alguns dados podem estar desatualizados devido a problemas de conexão.";
+                    return View();
+                }
+            }
         }
     }
 }
