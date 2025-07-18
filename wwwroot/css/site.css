@@ -149,6 +149,36 @@ img.lazy.loaded {
     color: #6c757d !important;
 }
 
+/* Dashboard posts table improvements */
+.table-borderless td {
+    color: #212529 !important;
+    font-weight: 500;
+}
+
+.table-borderless .fw-bold {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+.table-borderless .text-muted {
+    color: #6c757d !important;
+    font-weight: 400 !important;
+}
+
+.table-borderless th {
+    color: #495057 !important;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Card header improvements */
+.card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+    font-weight: 600;
+}
+
 /* Back to top button */
 #back-to-top {
     position: fixed;
