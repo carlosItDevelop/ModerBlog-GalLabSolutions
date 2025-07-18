@@ -145,32 +145,34 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <script>
-        // Initialize Quill editor
-        var quill = new Quill('#content-editor', {
-            theme: 'snow',
-            placeholder: 'Escreva o conteúdo do seu post aqui...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    [{ 'align': [] }],
-                    ['blockquote', 'code-block'],
-                    ['link', 'image'],
-                    ['clean']
-                ]
-            }
-        });
-
-        // Update hidden textarea when form is submitted
-        document.querySelector('form').addEventListener('submit', function() {
-            document.querySelector('textarea[name="Content"]').value = quill.root.innerHTML;
-        });
-
-        // Initialize Select2 for tags
+        let quill;
+        
+        // Initialize when DOM is ready
         $(document).ready(function() {
+            console.log('🚀 Inicializando editor...');
+            
+            // Initialize Quill editor
+            quill = new Quill('#content-editor', {
+                theme: 'snow',
+                placeholder: 'Escreva o conteúdo do seu post aqui...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        [{ 'align': [] }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            console.log('✅ Quill editor inicializado');
+
+            // Initialize Select2 for tags
             $('#tags-select').select2({
                 placeholder: 'Selecione as tags',
                 allowClear: true,
@@ -188,24 +190,78 @@
                     };
                 }
             });
+
+            console.log('✅ Select2 inicializado');
+        });
+
+        // Update hidden textarea when form is submitted
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const contentTextarea = document.querySelector('textarea[name="Content"]');
+            
+            if (form && contentTextarea) {
+                form.addEventListener('submit', function(e) {
+                    console.log('🔄 Formulário sendo enviado...');
+                    
+                    // Sync Quill content
+                    if (quill) {
+                        const content = quill.root.innerHTML;
+                        contentTextarea.value = content;
+                        console.log('📝 Conteúdo sincronizado:', content.length + ' caracteres');
+                    }
+                    
+                    // Basic validation
+                    const title = document.querySelector('input[name="Title"]').value;
+                    const category = document.querySelector('select[name="CategoryId"]').value;
+                    
+                    if (!title.trim()) {
+                        alert('Por favor, digite um título para o post.');
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    if (!category) {
+                        alert('Por favor, selecione uma categoria.');
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    if (!contentTextarea.value.trim() || contentTextarea.value === '<p><br></p>') {
+                        alert('Por favor, digite o conteúdo do post.');
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    console.log('✅ Validação passou, enviando formulário...');
+                    return true;
+                });
+            }
         });
 
         // Image preview functionality
-        document.getElementById('featuredImage').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('preview-img').src = e.target.result;
-                    document.getElementById('image-preview').classList.remove('d-none');
-                };
-                reader.readAsDataURL(file);
+        document.addEventListener('DOMContentLoaded', function() {
+            const featuredImageInput = document.getElementById('featuredImage');
+            if (featuredImageInput) {
+                featuredImageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('preview-img').src = e.target.result;
+                            document.getElementById('image-preview').classList.remove('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             }
         });
 
         function removeImagePreview() {
-            document.getElementById('featuredImage').value = '';
-            document.getElementById('image-preview').classList.add('d-none');
+            const featuredImage = document.getElementById('featuredImage');
+            const imagePreview = document.getElementById('image-preview');
+            
+            if (featuredImage) featuredImage.value = '';
+            if (imagePreview) imagePreview.classList.add('d-none');
         }
 
         // Form validation

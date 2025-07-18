@@ -39,16 +39,42 @@ public class PostsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Post post, IFormFile? featuredImage, List<Guid> selectedTags)
     {
-        if (ModelState.IsValid)
+        Console.WriteLine("🔄 Tentativa de criar post...");
+        Console.WriteLine($"📝 Título: {post.Title}");
+        Console.WriteLine($"📝 Categoria: {post.CategoryId}");
+        Console.WriteLine($"📝 Conteúdo (primeiros 100 chars): {post.Content?.Substring(0, Math.Min(100, post.Content.Length ?? 0))}");
+        Console.WriteLine($"📝 ModelState válido: {ModelState.IsValid}");
+
+        if (!ModelState.IsValid)
+        {
+            Console.WriteLine("❌ ModelState inválido:");
+            foreach (var error in ModelState)
+            {
+                if (error.Value.Errors.Count > 0)
+                {
+                    Console.WriteLine($"Campo: {error.Key}");
+                    foreach (var err in error.Value.Errors)
+                    {
+                        Console.WriteLine($"  Erro: {err.ErrorMessage}");
+                    }
+                }
+            }
+            await PopulateDropdowns();
+            return View(post);
+        }
+
+        try
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
+                Console.WriteLine("❌ Usuário não encontrado");
                 ModelState.AddModelError("", "User not found");
                 await PopulateDropdowns();
                 return View(post);
             }
 
+            Console.WriteLine($"👤 Usuário encontrado: {user.Email}");
             post.AuthorId = user.Id;
 
             // Handle image upload
@@ -56,31 +82,43 @@ public class PostsController : Controller
             {
                 try
                 {
+                    Console.WriteLine("🖼️ Salvando imagem...");
                     post.FeaturedImageUrl = await _imageService.SaveImageAsync(featuredImage, "posts");
+                    Console.WriteLine($"✅ Imagem salva: {post.FeaturedImageUrl}");
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"❌ Erro ao salvar imagem: {ex.Message}");
                     ModelState.AddModelError("FeaturedImage", ex.Message);
                     await PopulateDropdowns();
                     return View(post);
                 }
             }
 
+            Console.WriteLine("💾 Criando post no banco...");
             var createdPost = await _postService.CreatePostAsync(post);
+            Console.WriteLine($"✅ Post criado com ID: {createdPost.Id}");
 
             // Handle tags
             if (selectedTags?.Any() == true)
             {
+                Console.WriteLine($"🏷️ Tags selecionadas: {selectedTags.Count}");
                 // This would need additional logic to handle PostTag relationships
                 // For now, we'll skip this part as it requires more complex implementation
             }
 
-            TempData["Success"] = "Post created successfully!";
+            TempData["Success"] = "Post criado com sucesso!";
+            Console.WriteLine("✅ Redirecionando para Index...");
             return RedirectToAction(nameof(Index));
         }
-
-        await PopulateDropdowns();
-        return View(post);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao criar post: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            ModelState.AddModelError("", $"Erro ao criar post: {ex.Message}");
+            await PopulateDropdowns();
+            return View(post);
+        }
     }
 
     [HttpGet]
