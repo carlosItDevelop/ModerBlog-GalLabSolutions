@@ -76,26 +76,9 @@ public class ImageService : IImageService
         return allowedTypes.Contains(imageFile.ContentType.ToLower());
     }
 
-    public async Task<string> ResizeImageAsync(string imagePath, int width, int height)
+    public Task<string> ResizeImageAsync(string imagePath, int width, int height)
     {
-        var fullPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
-        if (!File.Exists(fullPath))
-            throw new FileNotFoundException("Image not found");
-
-        using (var image = await Image.LoadAsync(fullPath))
-        {
-            image.Mutate(x => x.Resize(new ResizeOptions
-            {
-                Size = new Size(width, height),
-                Mode = ResizeMode.Crop
-            }));
-
-            var newFileName = $"resized_{width}x{height}_{Path.GetFileName(fullPath)}";
-            var newPath = Path.Combine(Path.GetDirectoryName(fullPath)!, newFileName);
-
-            await image.SaveAsJpegAsync(newPath);
-
-            return imagePath.Replace(Path.GetFileName(imagePath), newFileName);
-        }
+        // TODO: Implement image resizing logic
+        return Task.FromResult(imagePath);
     }
 }

@@ -93,10 +93,7 @@
                                 <div class="mb-3">
                                     <small class="text-muted">
                                         <strong>Criado em:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")<br>
-                                        @if (Model.UpdatedAt.HasValue)
-                                        {
-                                            <strong>Atualizado em:</strong> @Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")<br>
-                                        }
+                                        <strong>Atualizado em:</strong> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")<br>
                                         <strong>Visualizações:</strong> @Model.ViewCount<br>
                                         <strong>Curtidas:</strong> @Model.LikeCount
                                     </small>

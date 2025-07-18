@@ -1,4 +1,3 @@
-
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -7,7 +6,7 @@
 {
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle"></i> @User.Identity.Name
+            <i class="bi bi-person-circle"></i> @User.Identity?.Name
         </a>
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
