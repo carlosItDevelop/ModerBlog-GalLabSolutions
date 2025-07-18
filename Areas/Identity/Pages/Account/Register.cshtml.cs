@@ -129,8 +129,8 @@ namespace ModernBlog.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation($"✅ REGISTRO: Usuário criado com sucesso: {user.Email} (ID: {user.Id})");
 
-                    var signInResult = await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation($"🔐 REGISTRO: Login automático - Succeeded: {signInResult.Succeeded}");
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation($"🔐 REGISTRO: Login automático realizado");
                     _logger.LogInformation($"👤 REGISTRO: Usuário {user.Email} logado automaticamente após registro");
                     
                     // Ir direto para home após registro
