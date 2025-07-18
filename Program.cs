@@ -28,7 +28,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             var password = uriBuilder.Password;
             
             // Build proper Npgsql connection string
-            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;CommandTimeout=30;Timeout=30";
         }
         catch (Exception ex)
         {
@@ -41,7 +41,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     else
     {
         connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres";
+            ?? "Host=localhost;Database=ModernBlog;Username=postgres;Password=postgres;CommandTimeout=30;Timeout=30";
     }
         
     options.UseNpgsql(connectionString);

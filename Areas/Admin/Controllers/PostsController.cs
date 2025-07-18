@@ -128,7 +128,7 @@ public class PostsController : Controller
         if (post == null)
             return NotFound();
 
-        ViewBag.Categories = await _postService.GetCategoriesAsync();
+        await PopulateDropdowns();
         return View(post);
     }
 
@@ -188,7 +188,7 @@ public class PostsController : Controller
             }
         }
 
-        ViewBag.Categories = await _postService.GetCategoriesAsync();
+        await PopulateDropdowns();
         return View(post);
     }
 

@@ -77,14 +77,23 @@ public class PostService : IPostService
 
     public async Task<Post?> GetPostByIdAsync(Guid id)
     {
-        return await _context.Posts
-            .Include(p => p.Author)
-            .Include(p => p.Category)
-            .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-            .Include(p => p.Comments.Where(c => c.IsApproved))
-                .ThenInclude(c => c.Author)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        try
+        {
+            return await _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Category)
+                .Include(p => p.PostTags)
+                    .ThenInclude(pt => pt.Tag)
+                .Include(p => p.Comments.Where(c => c.IsApproved))
+                    .ThenInclude(c => c.Author)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao buscar post: {ex.Message}");
+            // Try simple query without includes as fallback
+            return await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
+        }
     }
 
     public async Task<Post?> GetPostBySlugAsync(string slug)
@@ -115,28 +124,56 @@ public class PostService : IPostService
 
     public async Task<Post> CreatePostAsync(Post post)
     {
-        post.UpdatedAt = DateTime.UtcNow;
-        if (post.IsPublished && post.PublishedAt == null)
+        try
         {
-            post.PublishedAt = DateTime.UtcNow;
-        }
+            Console.WriteLine("💾 Iniciando criação do post...");
+            
+            post.UpdatedAt = DateTime.UtcNow;
+            if (post.IsPublished && post.PublishedAt == null)
+            {
+                post.PublishedAt = DateTime.UtcNow;
+            }
 
-        _context.Posts.Add(post);
-        await _context.SaveChangesAsync();
-        return post;
+            Console.WriteLine("📝 Adicionando post ao contexto...");
+            _context.Posts.Add(post);
+            
+            Console.WriteLine("💽 Salvando no banco...");
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"✅ Post criado com sucesso! ID: {post.Id}");
+            return post;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao criar post: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     public async Task<Post> UpdatePostAsync(Post post)
     {
-        post.UpdatedAt = DateTime.UtcNow;
-        if (post.IsPublished && post.PublishedAt == null)
+        try
         {
-            post.PublishedAt = DateTime.UtcNow;
-        }
+            Console.WriteLine($"🔄 Atualizando post ID: {post.Id}");
+            
+            post.UpdatedAt = DateTime.UtcNow;
+            if (post.IsPublished && post.PublishedAt == null)
+            {
+                post.PublishedAt = DateTime.UtcNow;
+            }
 
-        _context.Posts.Update(post);
-        await _context.SaveChangesAsync();
-        return post;
+            _context.Posts.Update(post);
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine("✅ Post atualizado com sucesso!");
+            return post;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao atualizar post: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task DeletePostAsync(Guid id)
